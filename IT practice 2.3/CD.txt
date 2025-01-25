@@ -1,0 +1,26 @@
+@startuml
+entity "Склади" as Warehouses {
+  * warehouse_id : INT [PK]
+  --
+  * name : VARCHAR(100)
+  * location : VARCHAR(100)
+  * capacity : INT
+}
+
+entity "Ресурси" as Resources {
+  * resource_id : INT [PK]
+  --
+  * name : VARCHAR(100)
+  * description : VARCHAR(255)
+  * quantity : INT
+}
+
+entity "Переміщення ресурсів" as ResourceMovements {
+  * movement_id : INT [PK]
+  --
+  * resource_id : INT [FK]
+  * from_warehouse_id : INT [FK]
+  * to_warehouse_id : INT [FK]
+  * quantity : INT
+  * date : DATE
+}
