@@ -1,0 +1,21 @@
+SELECT * FROM Warehouses;
+SELECT * FROM Resources WHERE id IN (SELECT resource_id FROM ResourceMovements WHERE from_warehouse_id = 1);
+SELECT * FROM ResourceMovements WHERE from_warehouse_id = 1 AND to_warehouse_id = 2;
+SELECT SUM(quantity) FROM Resources WHERE id IN (SELECT resource_id FROM ResourceMovements WHERE from_warehouse_id = 2);
+SELECT * FROM Warehouses ORDER BY capacity DESC LIMIT 1;
+SELECT * FROM Resources WHERE description LIKE '%Шини%';
+SELECT * FROM Warehouses WHERE capacity > 1500;
+SELECT SUM(quantity) FROM Resources WHERE name = 'Палети';
+SELECT date FROM ResourceMovements ORDER BY quantity DESC LIMIT 1;
+UPDATE Resources SET quantity = quantity + 50 WHERE name = 'Шини' AND id IN (SELECT resource_id FROM ResourceMovements WHERE from_warehouse_id = 1);
+SELECT * FROM ResourceMovements WHERE resource_id = (SELECT id FROM Resources WHERE name = 'Контейнери') AND from_warehouse_id = 2 AND to_warehouse_id = 3;
+SELECT COUNT(DISTINCT resource_id) FROM ResourceMovements WHERE to_warehouse_id = 3;
+SELECT DISTINCT W.name, W.location FROM Warehouses W JOIN ResourceMovements RM ON W.id = RM.to_warehouse_id WHERE RM.resource_id = (SELECT id FROM Resources WHERE name = 'Палети');
+SELECT AVG(quantity) FROM ResourceMovements;
+SELECT * FROM ResourceMovements WHERE to_warehouse_id = 1;
+SELECT * FROM Warehouses WHERE capacity > (SELECT AVG(capacity) FROM Warehouses);
+SELECT DISTINCT R.name FROM Resources R JOIN ResourceMovements RM ON R.id = RM.resource_id WHERE RM.from_warehouse_id = 2;
+SELECT SUM(quantity) FROM Resources WHERE name = 'Картонні коробки';
+SELECT DISTINCT W.name FROM Warehouses W JOIN ResourceMovements RM ON W.id = RM.from_warehouse_id WHERE RM.resource_id = (SELECT id FROM Resources WHERE name = 'Шини');
+UPDATE Warehouses SET name = 'Склад із зниженою потужністю' WHERE capacity < 1200;
+

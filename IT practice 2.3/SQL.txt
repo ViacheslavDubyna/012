@@ -1,0 +1,44 @@
+-- Створення таблиці для складів
+CREATE TABLE IF NOT EXISTS Warehouses (
+    id SERIAL PRIMARY KEY,  -- Ідентифікатор складу
+    name TEXT NOT NULL,                               -- Назва складу
+    location TEXT,                                    -- Місцезнаходження складу
+    capacity INTEGER                                  -- Потужність складу (макс. кількість одиниць, що можна зберігати)
+);
+
+-- Створення таблиці для ресурсів
+CREATE TABLE IF NOT EXISTS Resources (
+    id SERIAL PRIMARY KEY,    -- Ідентифікатор ресурсу
+    name TEXT NOT NULL,                               -- Назва ресурсу
+    description TEXT,                                 -- Опис ресурсу
+    quantity INTEGER                                  -- Кількість ресурсу на складі
+);
+
+-- Створення таблиці для переміщень ресурсів
+CREATE TABLE IF NOT EXISTS ResourceMovements (
+    id SERIAL PRIMARY KEY,           -- Ідентифікатор переміщення (автоінкремент)
+    resource_id INT,                          -- Ідентифікатор ресурсу
+    from_warehouse_id INT,                    -- Ідентифікатор складу-відправника
+    to_warehouse_id INT,                      -- Ідентифікатор складу-отримувача
+    quantity INT NOT NULL,                    -- Кількість переміщених одиниць
+    date TEXT,                                -- Дата та час переміщення
+                             -- Визначаємо id як первинний ключ
+    FOREIGN KEY (resource_id) REFERENCES Resources(id),
+    FOREIGN KEY (from_warehouse_id) REFERENCES Warehouses(id),
+    FOREIGN KEY (to_warehouse_id) REFERENCES Warehouses(id)
+);
+INSERT INTO Warehouses (name, location, capacity) 
+VALUES 
+    ('Склад №1', 'Місто Київ, вул. Лесі Українки, 10', 1000), 
+    ('Склад №2', 'Місто Харків, вул. Сумська, 50', 1500),
+    ('Склад №3', 'Місто Одеса, вул. Дерибасівська, 5', 2000);
+INSERT INTO Resources (name, description, quantity) 
+VALUES 
+    ('Палети', 'Стандартні дерев\яні палети', 500),
+    ('Контейнери', 'Пластикові контейнери для зберігання продуктів', 1000),
+    ('Шини', 'Шини для автомобілів різних марок', 300);
+INSERT INTO ResourceMovements (resource_id, from_warehouse_id, to_warehouse_id, quantity, date)
+VALUES 
+    (1, 1, 2, 100, '2025-01-25 10:30:00'),  -- 100 палетів переміщено зі складу №1 на склад №2
+    (2, 2, 3, 200, '2025-01-25 12:00:00'),  -- 200 контейнерів переміщено зі складу №2 на склад №3
+    (3, 1, 3, 150, '2025-01-25 14:45:00');  -- 150 шин переміщено зі складу №1 на склад №3
