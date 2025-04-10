@@ -1,0 +1,42 @@
+// Ієрархічна структура проблем СОУ НГУ
+digraph {
+	fontname=Arial fontsize=16 label="Ієрархічна структура проблем СОУ НГУ
+(Причини Вгорі -> Наслідки Внизу)" rankdir=TB
+	node [fillcolor=lightblue fontname=Arial fontsize=10 shape=box style="rounded, filled"]
+	edge [fontname=Arial fontsize=8]
+	P1 [label="P1: Обмеженість
+ресурсів"]
+	P2 [label="P2: Застаріле
+техн. забезп."]
+	P3 [label="P3: Виснаження
+особ. складу"]
+	P4 [label="P4: Недостатній
+кіберзахист"]
+	P5 [label="P5: Залежність від
+координації"]
+	P6 [label="P6: Нестача
+кваліф. спец."]
+	P7 [label="P7: Зростання
+гібр. загроз"]
+	subgraph cluster_L1 {
+		color=lightgrey fontname=Arial fontsize=12 label="Рівень 1 (Причини)" style=filled
+		rank=same
+		P2
+		P7
+	}
+	subgraph cluster_L2 {
+		color=lightgrey fontname=Arial fontsize=12 label="Рівень 2" style=filled
+		rank=same
+		P1
+		P3
+		P4
+		P6
+	}
+	subgraph cluster_L3 {
+		color=lightgrey fontname=Arial fontsize=12 label="Рівень 3 (Наслідки)" style=filled
+		rank=same
+		P5
+	}
+	P2 -> P1 [style=invis]
+	P1 -> P5 [style=invis]
+}

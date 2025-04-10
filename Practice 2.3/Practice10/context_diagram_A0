@@ -1,0 +1,57 @@
+// Контекстна діаграма A-0: Оперативне управління НГУ
+digraph {
+	fontsize=12 rankdir=LR
+	label="Контекстна діаграма A-0: Оперативне управління НГУ
+Дата: 07.04.2025"
+	A0 [label="Здійснення оперативного управління НГУ" fillcolor=lightgrey shape=box style=filled]
+	input1 [label="Директиви вищого рівня" fillcolor=lightblue shape=ellipse style=filled]
+	input1 -> A0
+	input2 [label="Оперативна обстановка" fillcolor=lightblue shape=ellipse style=filled]
+	input2 -> A0
+	input3 [label="Запити від підрозділів" fillcolor=lightblue shape=ellipse style=filled]
+	input3 -> A0
+	input4 [label="Дані про ресурси" fillcolor=lightblue shape=ellipse style=filled]
+	input4 -> A0
+	input5 [label="Цілі держполітики" fillcolor=lightblue shape=ellipse style=filled]
+	input5 -> A0
+	control1 [label="Законодавство України" fillcolor=lightyellow shape=diamond style=filled]
+	control1 -> A0
+	control2 [label="Військові статути" fillcolor=lightyellow shape=diamond style=filled]
+	control2 -> A0
+	control3 [label="Стратегічні плани" fillcolor=lightyellow shape=diamond style=filled]
+	control3 -> A0
+	control4 [label="Замисел командування" fillcolor=lightyellow shape=diamond style=filled]
+	control4 -> A0
+	control5 [label="Правила ROE" fillcolor=lightyellow shape=diamond style=filled]
+	control5 -> A0
+	control6 [label="Стандарти НАТО" fillcolor=lightyellow shape=diamond style=filled]
+	control6 -> A0
+	control7 [label="Ресурсні обмеження" fillcolor=lightyellow shape=diamond style=filled]
+	control7 -> A0
+	output1 [label="Управлінські рішення" fillcolor=lightgreen shape=ellipse style=filled]
+	A0 -> output1
+	output2 [label="Дії підрозділів НГУ" fillcolor=lightgreen shape=ellipse style=filled]
+	A0 -> output2
+	output3 [label="Звіти командуванню" fillcolor=lightgreen shape=ellipse style=filled]
+	A0 -> output3
+	output4 [label="Оперативна картина" fillcolor=lightgreen shape=ellipse style=filled]
+	A0 -> output4
+	output5 [label="Взаємодія" fillcolor=lightgreen shape=ellipse style=filled]
+	A0 -> output5
+	output6 [label="Розпорядження ресурсами" fillcolor=lightgreen shape=ellipse style=filled]
+	A0 -> output6
+	mech1 [label="Органи управління НГУ" fillcolor=lightpink shape=component style=filled]
+	mech1 -> A0 [style=dashed]
+	mech2 [label="Пункти управління" fillcolor=lightpink shape=component style=filled]
+	mech2 -> A0 [style=dashed]
+	mech3 [label="Система зв'язку" fillcolor=lightpink shape=component style=filled]
+	mech3 -> A0 [style=dashed]
+	mech4 [label="Розвідка" fillcolor=lightpink shape=component style=filled]
+	mech4 -> A0 [style=dashed]
+	mech5 [label="Логістика" fillcolor=lightpink shape=component style=filled]
+	mech5 -> A0 [style=dashed]
+	mech6 [label="Особовий склад" fillcolor=lightpink shape=component style=filled]
+	mech6 -> A0 [style=dashed]
+	mech7 [label="Нормативна база" fillcolor=lightpink shape=component style=filled]
+	mech7 -> A0 [style=dashed]
+}
