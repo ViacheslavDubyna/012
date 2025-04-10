@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Інструменти прогнозування - ІАС НГУ{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Інструменти прогнозування</h2>
+        <p class="text-muted">Прогнозування загроз та потреб у ресурсах для підрозділів НГУ</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Прогнозування загроз -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Прогнозування рівня загрози</h5>
+            </div>
+            <div class="card-body">
+                <form id="threat-prediction-form">
+                    <div class="mb-3">
+                        <label for="region" class="form-label">Регіон</label>
+                        <select class="form-select" id="region" name="region" required>
+                            <option value="" selected disabled>Виберіть регіон</option>
+                            <option value="Північ">Північ</option>
+                            <option value="Південь">Південь</option>
+                            <option value="Схід">Схід</option>
+                            <option value="Захід">Захід</option>
+                            <option value="Центр">Центр</option>
+                            <option value="Київ">Київ</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Локація</label>
+                        <input type="text" class="form-control" id="location" name="location" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Статус</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="" selected disabled>Виберіть статус</option>
+                            <option value="Штатна">Штатна</option>
+                            <option value="Напружена">Напружена</option>
+                            <option value="Критична">Критична</option>
+                            <option value="Надзвичайна">Надзвичайна</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="readiness_level" class="form-label">Рівень готовності підрозділу</label>
+                        <select class="form-select" id="readiness_level" name="readiness_level">
+                            <option value="1">1 - Низький</option>
+                            <option value="2">2 - Нижче середнього</option>
+                            <option value="3" selected>3 - Середній</option>
+                            <option value="4">4 - Вище середнього</option>
+                            <option value="5">5 - Високий</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Інциденти (кількість)</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">Порушення ГП</span>
+                                    <input type="number" class="form-control" id="public_disorder" name="public_disorder" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">Тер. загроза</span>
+                                    <input type="number" class="form-control" id="terrorist_threat" name="terrorist_threat" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">Диверсія</span>
+                                    <input type="number" class="form-control" id="sabotage" name="sabotage" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">Масові заворушення</span>
+                                    <input type="number" class="form-control" id="mass_riots" name="mass_riots" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">Блокування об'єктів</span>
+                                    <input type="number" class="form-control" id="object_blocking" name="object_blocking" value="0" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="avg_severity" class="form-label">Середня серйозність інцидентів (1-5)</label>
+                        <input type="number" class="form-control" id="avg_severity" name="avg_severity" value="0" min="0" max="5" step="0.1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="total_casualties" class="form-label">Кількість постраждалих</label>
+                        <input type="number" class="form-control" id="total_casualties" name="total_casualties" value="0" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="property_damage_count" class="form-label">Кількість інцидентів з пошкодженням майна</label>
+                        <input type="number" class="form-control" id="property_damage_count" name="property_damage_count" value="0" min="0">
+                    </div>
+                    
+                    <div class="text-end mt-4">
+                        <button type="reset" class="btn btn-secondary me-2">Скинути</button>
+                        <button type="submit" class="btn btn-primary">Прогнозувати</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

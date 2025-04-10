@@ -1,0 +1,621 @@
+{% extends 'base.html' %}
+
+{% block title %}Управління ресурсами - ІАС НГУ{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Управління ресурсами</h2>
+        <p class="text-muted">Моніторинг та розподіл ресурсів підрозділів НГУ</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Фільтри -->
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Фільтри</h5>
+            </div>
+            <div class="card-body">
+                <form id="resource-filters-form" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="unit-filter" class="form-label">Підрозділ</label>
+                        <select class="form-select" id="unit-filter">
+                            <option value="all" selected>Всі підрозділи</option>
+                            <!-- Буде заповнено через AJAX -->
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="resource-type-filter" class="form-label">Тип ресурсу</label>
+                        <select class="form-select" id="resource-type-filter">
+                            <option value="all" selected>Всі типи</option>
+                            <option value="Особовий склад">Особовий склад</option>
+                            <option value="Техніка">Техніка</option>
+                            <option value="Озброєння">Озброєння</option>
+                            <option value="Боєприпаси">Боєприпаси</option>
+                            <option value="Спорядження">Спорядження</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status-filter" class="form-label">Статус</label>
+                        <select class="form-select" id="status-filter">
+                            <option value="all" selected>Всі статуси</option>
+                            <option value="Доступний">Доступний</option>
+                            <option value="Розгорнутий">Розгорнутий</option>
+                            <option value="На обслуговуванні">На обслуговуванні</option>
+                            <option value="Резерв">Резерв</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="button" id="apply-filters" class="btn btn-primary w-100">Застосувати</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Таблиця ресурсів -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Ресурси</h5>
+                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addResourceModal">
+                    <i class="fas fa-plus me-1"></i> Додати ресурс
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Тип</th>
+                                <th>Підтип</th>
+                                <th>Кількість</th>
+                                <th>Статус</th>
+                                <th>Локація</th>
+                                <th>Підрозділ</th>
+                                <th>Оновлено</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resources-table-body">
+                            <!-- Буде заповнено через AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination-container" class="d-flex justify-content-center mt-3">
+                    <!-- Пагінація буде додана через JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Графіки розподілу ресурсів -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Розподіл ресурсів за типами</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="resource-type-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Розподіл ресурсів за статусом</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="resource-status-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Розподіл ресурсів -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Розподіл ресурсів</h5>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#allocateResourceModal">
+                    <i class="fas fa-exchange-alt me-1"></i> Розподілити ресурси
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ресурс</th>
+                                <th>Ситуація</th>
+                                <th>Кількість</th>
+                                <th>Час розподілу</th>
+                                <th>Статус</th>
+                                <th>Пріоритет</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allocations-table-body">
+                            <!-- Буде заповнено через AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="allocations-pagination-container" class="d-flex justify-content-center mt-3">
+                    <!-- Пагінація буде додана через JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно для додавання ресурсу -->
+<div class="modal fade" id="addResourceModal" tabindex="-1" aria-labelledby="addResourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addResourceModalLabel">Додати новий ресурс</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-resource-form">
+                    <div class="mb-3">
+                        <label for="resource-type" class="form-label">Тип ресурсу</label>
+                        <select class="form-select" id="resource-type" name="type" required>
+                            <option value="" selected disabled>Виберіть тип ресурсу</option>
+                            <option value="Особовий склад">Особовий склад</option>
+                            <option value="Техніка">Техніка</option>
+                            <option value="Озброєння">Озброєння</option>
+                            <option value="Боєприпаси">Боєприпаси</option>
+                            <option value="Спорядження">Спорядження</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resource-subtype" class="form-label">Підтип ресурсу</label>
+                        <input type="text" class="form-control" id="resource-subtype" name="subtype" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resource-quantity" class="form-label">Кількість</label>
+                        <input type="number" class="form-control" id="resource-quantity" name="quantity" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resource-status" class="form-label">Статус</label>
+                        <select class="form-select" id="resource-status" name="status" required>
+                            <option value="" selected disabled>Виберіть статус</option>
+                            <option value="Доступний">Доступний</option>
+                            <option value="Розгорнутий">Розгорнутий</option>
+                            <option value="На обслуговуванні">На обслуговуванні</option>
+                            <option value="Резерв">Резерв</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resource-location" class="form-label">Локація</label>
+                        <input type="text" class="form-control" id="resource-location" name="location" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resource-unit" class="form-label">Підрозділ</label>
+                        <select class="form-select" id="resource-unit" name="unit_id" required>
+                            <option value="" selected disabled>Виберіть підрозділ</option>
+                            <!-- Буде заповнено через AJAX -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-primary" id="save-resource-btn">Зберегти</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно для розподілу ресурсів -->
+<div class="modal fade" id="allocateResourceModal" tabindex="-1" aria-labelledby="allocateResourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="allocateResourceModalLabel">Розподілити ресурси</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="allocate-resource-form">
+                    <div class="mb-3">
+                        <label for="allocation-resource" class="form-label">Ресурс</label>
+                        <select class="form-select" id="allocation-resource" name="resource_id" required>
+                            <option value="" selected disabled>Виберіть ресурс</option>
+                            <!-- Буде заповнено через AJAX -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="allocation-situation" class="form-label">Ситуація</label>
+                        <select class="form-select" id="allocation-situation" name="situation_id" required>
+                            <option value="" selected disabled>Виберіть ситуацію</option>
+                            <!-- Буде заповнено через AJAX -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="allocation-quantity" class="form-label">Кількість</label>
+                        <input type="number" class="form-control" id="allocation-quantity" name="quantity_allocated" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="allocation-status" class="form-label">Статус розподілу</label>
+                        <select class="form-select" id="allocation-status" name="allocation_status" required>
+                            <option value="" selected disabled>Виберіть статус</option>
+                            <option value="Заплановано">Заплановано</option>
+                            <option value="В процесі">В процесі</option>
+                            <option value="Завершено">Завершено</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="allocation-priority" class="form-label">Пріоритет</label>
+                        <select class="form-select" id="allocation-priority" name="priority" required>
+                            <option value="1">1 - Низький</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3 - Середній</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - Високий</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="allocation-notes" class="form-label">Примітки</label>
+                        <textarea class="form-control" id="allocation-notes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-primary" id="save-allocation-btn">Зберегти</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Завантаження списку підрозділів
+        $.ajax({
+            url: '/api/units',
+            method: 'GET',
+            success: function(data) {
+                const unitFilter = $('#unit-filter');
+                const resourceUnit = $('#resource-unit');
+                
+                data.forEach(function(unit) {
+                    unitFilter.append(`<option value="${unit.id}">${unit.name}</option>`);
+                    resourceUnit.append(`<option value="${unit.id}">${unit.name}</option>`);
+                });
+            },
+            error: function(error) {
+                console.error('Помилка завантаження підрозділів:', error);
+            }
+        });
+        
+        // Завантаження ресурсів
+        function loadResources(page = 1) {
+            const filters = {
+                unit_id: $('#unit-filter').val() === 'all' ? null : $('#unit-filter').val(),
+                type: $('#resource-type-filter').val() === 'all' ? null : $('#resource-type-filter').val(),
+                status: $('#status-filter').val() === 'all' ? null : $('#status-filter').val(),
+                page: page
+            };
+            
+            $.ajax({
+                url: '/api/resources',
+                method: 'GET',
+                data: filters,
+                success: function(data) {
+                    const tableBody = $('#resources-table-body');
+                    tableBody.empty();
+                    
+                    if (data.resources.length === 0) {
+                        tableBody.append('<tr><td colspan="9" class="text-center">Ресурси не знайдено</td></tr>');
+                        return;
+                    }
+                    
+                    data.resources.forEach(function(resource) {
+                        const row = `
+                            <tr>
+                                <td>${resource.id}</td>
+                                <td>${resource.type}</td>
+                                <td>${resource.subtype}</td>
+                                <td>${resource.quantity}</td>
+                                <td>
+                                    <span class="badge ${getStatusBadgeClass(resource.status)}">
+                                        ${resource.status}
+                                    </span>
+                                </td>
+                                <td>${resource.location}</td>
+                                <td>${resource.unit_name}</td>
+                                <td>${new Date(resource.last_updated).toLocaleString()}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary edit-resource" data-id="${resource.id}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-resource" data-id="${resource.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tableBody.append(row);
+                    });
+                    
+                    // Пагінація
+                    renderPagination(data.total_pages, data.current_page, 'pagination-container', loadResources);
+                    
+                    // Завантаження ресурсів для розподілу
+                    const allocationResource = $('#allocation-resource');
+                    allocationResource.empty();
+                    allocationResource.append('<option value="" selected disabled>Виберіть ресурс</option>');
+                    
+                    data.resources.forEach(function(resource) {
+                        allocationResource.append(`<option value="${resource.id}">${resource.type} - ${resource.subtype} (${resource.quantity} од.)</option>`);
+                    });
+                },
+                error: function(error) {
+                    console.error('Помилка завантаження ресурсів:', error);
+                    $('#resources-table-body').html('<tr><td colspan="9" class="text-center">Помилка завантаження даних</td></tr>');
+                }
+            });
+        }
+        
+        // Завантаження ситуацій для розподілу ресурсів
+        $.ajax({
+            url: '/api/situations',
+            method: 'GET',
+            success: function(data) {
+                const allocationSituation = $('#allocation-situation');
+                
+                data.forEach(function(situation) {
+                    allocationSituation.append(`<option value="${situation.id}">${situation.location} - ${situation.status} (${situation.timestamp})</option>`);
+                });
+            },
+            error: function(error) {
+                console.error('Помилка завантаження ситуацій:', error);
+            }
+        });
+        
+        // Завантаження розподілів ресурсів
+        function loadAllocations(page = 1) {
+            $.ajax({
+                url: '/api/resource-allocations',
+                method: 'GET',
+                data: { page: page },
+                success: function(data) {
+                    const tableBody = $('#allocations-table-body');
+                    tableBody.empty();
+                    
+                    if (data.allocations.length === 0) {
+                        tableBody.append('<tr><td colspan="8" class="text-center">Розподіли не знайдено</td></tr>');
+                        return;
+                    }
+                    
+                    data.allocations.forEach(function(allocation) {
+                        const row = `
+                            <tr>
+                                <td>${allocation.id}</td>
+                                <td>${allocation.resource_name}</td>
+                                <td>${allocation.situation_location}</td>
+                                <td>${allocation.quantity_allocated}</td>
+                                <td>${new Date(allocation.allocation_time).toLocaleString()}</td>
+                                <td>
+                                    <span class="badge ${getAllocationStatusBadgeClass(allocation.allocation_status)}">
+                                        ${allocation.allocation_status}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        ${allocation.priority}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary edit-allocation" data-id="${allocation.id}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-allocation" data-id="${allocation.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tableBody.append(row);
+                    });
+                    
+                    // Пагінація
+                    renderPagination(data.total_pages, data.current_page, 'allocations-pagination-container', loadAllocations);
+                },
+                error: function(error) {
+                    console.error('Помилка завантаження розподілів:', error);
+                    $('#allocations-table-body').html('<tr><td colspan="8" class="text-center">Помилка завантаження даних</td></tr>');
+                }
+            });
+        }
+        
+        // Завантаження даних для графіків
+        $.ajax({
+            url: '/api/resources/charts-data',
+            method: 'GET',
+            success: function(data) {
+                // Графік розподілу ресурсів за типами
+                const typeCtx = document.getElementById('resource-type-chart').getContext('2d');
+                new Chart(typeCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.by_type.labels,
+                        datasets: [{
+                            data: data.by_type.values,
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    }
+                });
+                
+                // Графік розподілу ресурсів за статусом
+                const statusCtx = document.getElementById('resource-status-chart').getContext('2d');
+                new Chart(statusCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.by_status.labels,
+                        datasets: [{
+                            label: 'Кількість ресурсів',
+                            data: data.by_status.values,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(error) {
+                console.error('Помилка завантаження даних для графіків:', error);
+            }
+        });
+        
+        // Функція для відображення пагінації
+        function renderPagination(totalPages, currentPage, containerId, callback) {
+            const container = $(`#${containerId}`);
+            container.empty();
+            
+            if (totalPages <= 1) return;
+            
+            const pagination = $('<ul class="pagination"></ul>');
+            
+            // Кнопка "Попередня"
+            const prevItem = $('<li class="page-item"></li>');
+            const prevLink = $(`<a class="page-link" href="#">Попередня</a>`);
+            if (currentPage === 1) prevItem.addClass('disabled');
+            else prevLink.click(function(e) {
+                e.preventDefault();
+                callback(currentPage - 1);
+            });
+            prevItem.append(prevLink);
+            pagination.append(prevItem);
+            
+            // Сторінки
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, startPage + 4);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageItem = $('<li class="page-item"></li>');
+                if (i === currentPage) pageItem.addClass('active');
+                
+                const pageLink = $(`<a class="page-link" href="#">${i}</a>`);
+                pageLink.click(function(e) {
+                    e.preventDefault();
+                    callback(i);
+                });
+                
+                pageItem.append(pageLink);
+                pagination.append(pageItem);
+            }
+            
+            // Кнопка "Наступна"
+            const nextItem = $('<li class="page-item"></li>');
+            const nextLink = $(`<a class="page-link" href="#">Наступна</a>`);
+            if (currentPage === totalPages) nextItem.addClass('disabled');
+            else nextLink.click(function(e) {
+                e.preventDefault();
+                callback(currentPage + 1);
+            });
+            nextItem.append(nextLink);
+            pagination.append(nextItem);
+            
+            container.append(pagination);
+        }
+        
+        // Функція для визначення класу бейджа статусу ресурсу
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'Доступний': return 'bg-success';
+                case 'Розгорнутий': return 'bg-primary';
+                case 'На обслуговуванні': return 'bg-warning';
+                case 'Резерв': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        // Функція для визначення класу бейджа статусу розподілу
+        function getAllocationStatusBadgeClass(status) {
+            switch (status) {
+                case 'Заплановано': return 'bg-info';
+                case 'В процесі': return 'bg-warning';
+                case 'Завершено': return 'bg-success';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        // Обробник кнопки застосування фільтрів
+        $('#apply-filters').click(function() {
+            loadResources();
+        });
+        
+        // Обробник кнопки збереження ресурсу
+        $('#save-resource-btn').click(function() {
+            const formData = $('#add-resource-form').serialize();
+            
+            $.ajax({
+                url: '/api/resources',
+                method: 'POST',
+                data: formData,
+                success: function(response) {
+                    $('#addResourceModal').modal('hide');
+                    loadResources();
+                    alert('Ресурс успішно додано!');
+                },
+                error: function(error) {
+                    console.error('Помилка додавання ресурсу:', error);
+                    alert('Помилка додавання ресурсу: ' + error.responseJSON?.error || 'Невідома помилка');
+                }
+            });
+        });
+        
+        // Обробник кнопки збереження розподілу
+        $('#save-allocation-btn').click(function() {
+            const formData = $('#allocate-resource-form').serialize();
+            
+            $.ajax({
+                url: '/api/resource-allocations',
+                method: 'POST',
+                data: formData,
+                success: function(response) {
+                    $('#allocateResourceModal').modal('hide');
+                    loadAllocations();
+                    alert('Розподіл ресурсів успішно додано!');
+                },
+                error: function(error) {
+                    console.error('Помилка додавання розподілу:', error);
+                    alert('Помилка додавання розподілу: ' + error.responseJSON?.error || 'Невідома помилка');
+                }
+            });
+        });
+        
+        // Початкове завантаження даних
+        loadResources();
+        loadAllocations();
+    });
+</script>
+{% endblock %}
