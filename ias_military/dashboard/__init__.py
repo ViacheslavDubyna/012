@@ -6,3 +6,5 @@ dashboard = Blueprint('dashboard', __name__, template_folder='templates', static
 
 # Імпортуємо маршрути дашборду
 from .routes import *
+# Імпортуємо маршрути для управління підрозділами
+from .routes_unit import *

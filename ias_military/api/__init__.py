@@ -1,8 +1,8 @@
 # Ініціалізація API модуля для інформаційно-аналітичної системи Національної гвардії України
 
-from flask import Flask
+from flask import Blueprint
 
-app = Flask(__name__)
+app = Blueprint('api', __name__)
 
 # Імпортуємо маршрути API
 from .routes import *

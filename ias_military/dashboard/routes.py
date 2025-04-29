@@ -2,9 +2,16 @@
 
 from flask import render_template, request, redirect, url_for, jsonify
 from . import dashboard
-from ..api.analytics import NGUAnalytics
 import json
 import datetime
+import sys
+import os
+
+# Додаємо шлях до батьківської директорії в sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Імпортуємо аналітичний модуль
+from api.analytics import NGUAnalytics
 
 # Ініціалізуємо аналітичний модуль
 analytics = NGUAnalytics()
@@ -145,7 +152,7 @@ def predict_threat_dashboard():
         prediction = analytics.models['threat_prediction'].predict(df)[0]
         
         # Зберігаємо прогноз у базі даних
-        from ..database.models import Prediction
+        from database.models import Prediction
         
         prediction_obj = Prediction(
             timestamp=now,

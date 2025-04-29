@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+
+{% block title %}Управління підрозділами - ІАС НГУ{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Управління підрозділами НГУ</h2>
+        <p class="text-muted">Моніторинг та управління підрозділами Національної гвардії України</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Статистика підрозділів -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Розподіл підрозділів за типом</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="units-by-type-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Розподіл підрозділів за регіоном</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="units-by-region-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Таблиця підрозділів -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Список підрозділів</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUnitModal">
+                    <i class="fas fa-plus me-1"></i> Додати підрозділ
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Назва</th>
+                                <th>Тип</th>
+                                <th>Регіон</th>
+                                <th>Місцезнаходження</th>
+                                <th>Особовий склад</th>
+                                <th>Рівень готовності</th>
+                                <th>Статус</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for unit in units %}
+                            <tr>
+                                <td>{{ unit.id }}</td>
+                                <td>{{ unit.name }}</td>
+                                <td>{{ unit.type }}</td>
+                                <td>{{ unit.region }}</td>
+                                <td>{{ unit.location }}</td>
+                                <td>{{ unit.personnel_count }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if unit.readiness_level >= 4 else 'warning' if unit.readiness_level >= 2 else 'danger' }}">
+                                        {{ unit.readiness_level }}/5
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if unit.status == 'Активний' else 'warning' if unit.status == 'Резерв' else 'danger' }}">
+                                        {{ unit.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="viewUnitDetails({{ unit.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" onclick="editUnit({{ unit.id }})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно для додавання підрозділу -->
+<div class="modal fade" id="addUnitModal" tabindex="-1" aria-labelledby="addUnitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUnitModalLabel">Додати новий підрозділ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUnitForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="unitName" class="form-label">Назва підрозділу</label>
+                            <input type="text" class="form-control" id="unitName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="unitType" class="form-label">Тип підрозділу</label>
+                            <select class="form-select" id="unitType" required>
+                                <option value="">Оберіть тип...</option>
+                                <option value="Оперативний">Оперативний</option>
+                                <option value="Тактичний">Тактичний</option>
+                                <option value="Спеціальний">Спеціальний</option>
+                                <option value="Резервний">Резервний</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="unitRegion" class="form-label">Регіон</label>
+                            <select class="form-select" id="unitRegion" required>
+                                <option value="">Оберіть регіон...</option>
+                                <option value="Київська">Київська</option>
+                                <option value="Львівська">Львівська</option>
+                                <option value="Харківська">Харківська</option>
+                                <option value="Одеська">Одеська</option>
+                                <option value="Дніпропетровська">Дніпропетровська</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="unitLocation" class="form-label">Місцезнаходження</label>
+                            <input type="text" class="form-control" id="unitLocation" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="unitPersonnel" class="form-label">Особовий склад</label>
+                            <input type="number" class="form-control" id="unitPersonnel" min="1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="unitReadiness" class="form-label">Рівень готовності</label>
+                            <select class="form-select" id="unitReadiness" required>
+                                <option value="1">1 - Низький</option>
+                                <option value="2">2 - Нижче середнього</option>
+                                <option value="3">3 - Середній</option>
+                                <option value="4">4 - Вище середнього</option>
+                                <option value="5">5 - Високий</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="unitStatus" class="form-label">Статус</label>
+                            <select class="form-select" id="unitStatus" required>
+                                <option value="Активний">Активний</option>
+                                <option value="Резерв">Резерв</option>
+                                <option value="Навчання">Навчання</option>
+                                <option value="Відновлення">Відновлення</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-primary" id="saveUnitBtn">Зберегти</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно для перегляду деталей підрозділу -->
+<div class="modal fade" id="viewUnitModal" tabindex="-1" aria-labelledby="viewUnitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewUnitModalLabel">Деталі підрозділу</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="viewUnitDetails">
+                <!-- Дані будуть завантажені через AJAX -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Ініціалізація графіків при завантаженні сторінки
+document.addEventListener('DOMContentLoaded', function() {
+    // Графік розподілу підрозділів за типом
+    const unitsByTypeChart = new Chart(
+        document.getElementById('units-by-type-chart').getContext('2d'),
+        {
+            type: 'pie',
+            data: {
+                labels: Object.keys({{ units_by_type|safe }}),
+                datasets: [{
+                    data: Object.values({{ units_by_type|safe }}),
+                    backgroundColor: [
+                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        }
+    );
+    
+    // Графік розподілу підрозділів за регіоном
+    const unitsByRegionChart = new Chart(
+        document.getElementById('units-by-region-chart').getContext('2d'),
+        {
+            type: 'bar',
+            data: {
+                labels: Object.keys({{ units_by_region|safe }}),
+                datasets: [{
+                    label: 'Кількість підрозділів',
+                    data: Object.values({{ units_by_region|safe }}),
+                    backgroundColor: '#4e73df'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        }
+    );
+});
+
+// Функція для перегляду деталей підрозділу
+function viewUnitDetails(unitId) {
+    fetch(`/api/dashboard/units/${unitId}`)
+        .then(response => response.json())
+        .then(data => {
+            const detailsContainer = document.getElementById('viewUnitDetails');
+            detailsContainer.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ID:</strong> ${data.id}</p>
+                        <p><strong>Назва:</strong> ${data.name}</p>
+                        <p><strong>Тип:</strong> ${data.type}</p>
+                        <p><strong>Регіон:</strong> ${data.region}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Місцезнаходження:</strong> ${data.location}</p>
+                        <p><strong>Особовий склад:</strong> ${data.personnel_count}</p>
+                        <p><strong>Рівень готовності:</strong> ${data.readiness_level}/5</p>
+                        <p><strong>Статус:</strong> ${data.status}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Відкриваємо модальне вікно
+            const modal = new bootstrap.Modal(document.getElementById('viewUnitModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Помилка при отриманні даних про підрозділ:', error);
+            alert('Помилка при отриманні даних про підрозділ');
+        });
+}
+
+// Функція для редагування підрозділу
+function editUnit(unitId) {
+    // Тут буде код для редагування підрозділу
+    alert('Функція редагування підрозділу в розробці');
+}
+
+// Обробник для кнопки збереження нового підрозділу
+document.getElementById('saveUnitBtn').addEventListener('click', function() {
+    // Тут буде код для збереження нового підрозділу
+    alert('Функція додавання підрозділу в розробці');
+    
+    // Закриваємо модальне вікно
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addUnitModal'));
+    modal.hide();
+});
+</script>
+{% endblock %}
