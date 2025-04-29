@@ -34,15 +34,46 @@ class AIPredictor:
             'incident_predictor': os.path.join(MODELS_DIR, 'incident_predictor.joblib')
         }
         
+        models_loaded = False
         for model_name, model_path in model_files.items():
             if os.path.exists(model_path):
                 try:
+                    # Перевірка розміру файлу - якщо менше 1KB, ймовірно це заглушка
+                    file_size = os.path.getsize(model_path)
+                    if file_size < 1024:  # менше 1KB
+                        try:
+                            # Спробуємо відкрити як текстовий файл
+                            with open(model_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                content = f.read(100)  # Читаємо перші 100 символів
+                                if '#' in content or 'заглушка' in content:
+                                    print(f"Файл {model_name} є заглушкою, буде створена нова модель при навчанні")
+                                    continue
+                        except UnicodeDecodeError:
+                            # Якщо не вдалося відкрити як текст, спробуємо як бінарний
+                            pass
+                    
+                    # Спробуємо завантажити модель
                     self.models[model_name] = joblib.load(model_path)
                     print(f"Модель {model_name} успішно завантажена")
+                    models_loaded = True
                 except Exception as e:
                     print(f"Помилка завантаження моделі {model_name}: {e}")
+                    # Продовжуємо роботу без цієї моделі
             else:
                 print(f"Модель {model_name} не знайдена, буде створена при навчанні")
+        
+        if not models_loaded:
+            print("Не знайдено жодної робочої моделі для завантаження. Моделі будуть створені при першому використанні.")
+            # Ініціалізуємо порожні моделі для уникнення помилок
+            self.initialize_empty_models()
+    
+    def initialize_empty_models(self):
+        """Ініціалізація порожніх моделей для уникнення помилок"""
+        # Створюємо прості моделі-заглушки для основних предикторів
+        self.models['threat_predictor'] = RandomForestClassifier(n_estimators=10)
+        self.models['resource_predictor'] = RandomForestRegressor(n_estimators=10)
+        self.models['incident_predictor'] = RandomForestClassifier(n_estimators=10)
+        print("Ініціалізовано порожні моделі-заглушки для роботи системи")
     
     def save_model(self, model_name, model):
         """Збереження моделі"""

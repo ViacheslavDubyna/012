@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Україна",
+        "code": "UA"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [22.0, 44.0],
+            [40.0, 44.0],
+            [40.0, 52.0],
+            [22.0, 52.0],
+            [22.0, 44.0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Київська область",
+        "code": "UA-32"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [30.52, 50.45]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Львівська область",
+        "code": "UA-46"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [24.03, 49.84]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Харківська область",
+        "code": "UA-63"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [36.23, 49.99]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Одеська область",
+        "code": "UA-51"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [30.72, 46.48]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Дніпропетровська область",
+        "code": "UA-12"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [35.05, 48.45]
+      }
+    }
+  ]
+}

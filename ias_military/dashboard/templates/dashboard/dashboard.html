@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Дашборд Управління - ІАС НГУ{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold animate__animated animate__fadeIn">КОМПОНЕНТИ ПАНЕЛІ УПРАВЛІННЯ</h1>
+            <p class="lead text-muted">Інтерактивний дашборд для моніторингу та управління ресурсами Національної гвардії України</p>
+        </div>
+    </div>
+
+    <div class="row dashboard g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card panel panel-1 h-100 animate__animated animate__fadeInUp">
+                <div class="card-body text-center">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-map-marked-alt fa-3x text-primary"></i>
+                    </div>
+                    <h2 class="card-title h4 mb-3">Візуалізація оперативної обстановки</h2>
+                    <p class="card-text">Відображення суттєвої операційної статистики в реальному часі з інтерактивною картою України.</p>
+                    <div class="tooltip-custom mt-2">
+                        <button class="btn btn-outline-primary btn-sm">Детальніше</button>
+                        <span class="tooltip-text">Інтерактивна карта з відображенням оперативної обстановки, інцидентів та розташування підрозділів</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary w-100">Перейти <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card panel panel-2 h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <div class="card-body text-center">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-shield-alt fa-3x text-warning"></i>
+                    </div>
+                    <h2 class="card-title h4 mb-3">Аналіз загроз</h2>
+                    <p class="card-text">Комплексна оцінка потенційних загроз та ризиків з використанням аналітичних інструментів.</p>
+                    <div class="tooltip-custom mt-2">
+                        <button class="btn btn-outline-warning btn-sm">Детальніше</button>
+                        <span class="tooltip-text">Аналітичні інструменти для оцінки рівня загроз, прогнозування та моделювання ситуацій</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('dashboard.threat_analysis') }}" class="btn btn-warning w-100 text-dark">Перейти <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card panel panel-3 h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <div class="card-body text-center">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-boxes fa-3x text-danger"></i>
+                    </div>
+                    <h2 class="card-title h4 mb-3">Управління ресурсами</h2>
+                    <p class="card-text">Контроль розподілу та ефективного використання ресурсів підрозділів НГУ.</p>
+                    <div class="tooltip-custom mt-2">
+                        <button class="btn btn-outline-danger btn-sm">Детальніше</button>
+                        <span class="tooltip-text">Система управління матеріально-технічними ресурсами, логістикою та персоналом</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('dashboard.resource_management') }}" class="btn btn-danger w-100">Перейти <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card panel panel-4 h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                <div class="card-body text-center">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-chart-line fa-3x text-info"></i>
+                    </div>
+                    <h2 class="card-title h4 mb-3">Інструменти прогнозування</h2>
+                    <p class="card-text">Налаштування та використання інструментів для прогнозного аналізу та моделювання ситуацій.</p>
+                    <div class="tooltip-custom mt-2">
+                        <button class="btn btn-outline-info btn-sm">Детальніше</button>
+                        <span class="tooltip-text">Інструменти для прогнозування потреб у ресурсах, моделювання сценаріїв та аналізу тенденцій</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('dashboard.prediction_tools') }}" class="btn btn-info w-100 text-white">Перейти <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card map-container animate__animated animate__fadeIn" style="animation-delay: 0.4s;">
+                <div class="card-header">
+                    <h5 class="mb-0">Інтерактивна карта України</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="ukraine-map" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4 mb-5">
+        <div class="col-md-6">
+            <div class="card animate__animated animate__fadeIn" style="animation-delay: 0.5s;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Статистика інцидентів</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-primary">День</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary active">Тиждень</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary">Місяць</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="incidents-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card animate__animated animate__fadeIn" style="animation-delay: 0.6s;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Розподіл ресурсів</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="resourceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Фільтр
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="resourceDropdown">
+                            <li><a class="dropdown-item" href="#">Всі ресурси</a></li>
+                            <li><a class="dropdown-item" href="#">Персонал</a></li>
+                            <li><a class="dropdown-item" href="#">Техніка</a></li>
+                            <li><a class="dropdown-item" href="#">Спорядження</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="resources-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer text-center text-muted py-3">
+        <p>Інформаційно-аналітична система Національної гвардії України</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard-interactive.js') }}"></script>
+<script src="{{ url_for('static', filename='js/geojson-loader.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ініціалізація карти України
+        const ukraineMap = L.map('ukraine-map').setView([49.0, 31.0], 6);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(ukraineMap);
+
+        // Додавання маркерів (приклад)
+        L.marker([50.45, 30.52]).addTo(ukraineMap)
+            .bindPopup('<div class="map-popup"><div class="map-popup-header">Київ</div><div class="map-popup-content">Штаб НГУ<br>Статус: Штатний</div></div>');
+        
+        L.marker([49.84, 24.03]).addTo(ukraineMap)
+            .bindPopup('<div class="map-popup"><div class="map-popup-header">Львів</div><div class="map-popup-content">Західне оперативно-територіальне об'єднання<br>Статус: Штатний</div></div>');
+        
+        L.marker([48.45, 35.05]).addTo(ukraineMap)
+            .bindPopup('<div class="map-popup"><div class="map-popup-header">Дніпро</div><div class="map-popup-content">Східне оперативно-територіальне об'єднання<br>Статус: Підвищена готовність</div></div>');
+
+        // Ініціалізація графіків
+        const incidentsCtx = document.getElementById('incidents-chart').getContext('2d');
+        new Chart(incidentsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
+                datasets: [{
+                    label: 'Кількість інцидентів',
+                    data: [12, 19, 8, 15, 10, 5, 3],
+                    backgroundColor: '#0057b7'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        const resourcesCtx = document.getElementById('resources-chart').getContext('2d');
+        new Chart(resourcesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Персонал', 'Техніка', 'Спорядження', 'Інше'],
+                datasets: [{
+                    data: [45, 25, 20, 10],
+                    backgroundColor: ['#0057b7', '#ffd700', '#28a745', '#17a2b8']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    });
+</script>
+{% endblock %}

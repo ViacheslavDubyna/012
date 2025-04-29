@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% from 'components/chart.html' import render_chart %}
+
+{% block title %}Управління інцидентами - ІАС НГУ{% endblock %}
+
+{% block content %}
+<style>
+.dashboard-component {
+    border-radius: 20px 20px 50px 50px;
+    padding: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+    min-height: 250px;
+    transition: transform 0.3s;
+}
+.dashboard-component:hover {
+    transform: translateY(-5px);
+}
+.dashboard-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+.visualization { background-color: #fff3cd; }
+.threat-analysis { background-color: #ffe5d9; }
+.resource-management { background-color: #ffd7d7; }
+.prediction-tools { background-color: #ffe3f1; }
+</style>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Компоненти панелі управління</h2>
+        <p class="text-muted">Інтегрована система управління та моніторингу</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="dashboard-component visualization">
+            <div class="dashboard-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+            <h4>Візуалізація</h4>
+            <p>Відображає оперативну ситуацію в реальному часі.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="dashboard-component threat-analysis">
+            <div class="dashboard-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h4>Аналіз загроз</h4>
+            <p>Оцінює потенційні ризики та загрози.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="dashboard-component resource-management">
+            <div class="dashboard-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <h4>Управління ресурсами</h4>
+            <p>Контролює розподіл та використання ресурсів.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="dashboard-component prediction-tools">
+            <div class="dashboard-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h4>Інструменти прогнозування</h4>
+            <p>Надає інструменти для прогнозного аналізу.</p>
+        </div>
+    </div>
+</div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Розподіл інцидентів за важкістю</h5>
+            </div>
+            <div class="card-body">
+                {{ render_chart(
+  chart_id='incidents-by-severity-chart',
+  chart_type='bar',
+  chart_data={
+    'labels': incidents_by_severity.keys()|list,
+    'datasets': [{
+      'label': 'Кількість інцидентів',
+      'data': incidents_by_severity.values()|list,
+      'backgroundColor': '#4e73df'
+    }]
+  },
+  chart_options={
+    'scales': {'y': {'beginAtZero': True}}
+  }
+) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Таблиця інцидентів -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Список інцидентів</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addIncidentModal">
+                    <i class="fas fa-plus me-1"></i> Додати інцидент
+                </button>
+            </div>
+            <div class="card-body">
+                <p>Інформація про інциденти буде відображатися тут</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

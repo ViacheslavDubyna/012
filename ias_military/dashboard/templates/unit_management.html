@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'components/chart.html' import render_chart %}
 
 {% block title %}Управління підрозділами - ІАС НГУ{% endblock %}
 
@@ -18,7 +19,21 @@
                 <h5 class="mb-0">Розподіл підрозділів за типом</h5>
             </div>
             <div class="card-body">
-                <canvas id="units-by-type-chart"></canvas>
+                {{ render_chart(
+  chart_id='units-by-type-chart',
+  chart_type='pie',
+  chart_data={
+    'labels': units_by_type.keys()|list,
+    'datasets': [{
+      'data': units_by_type.values()|list,
+      'backgroundColor': ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']
+    }]
+  },
+  chart_options={
+    'responsive': True,
+    'plugins': {'legend': {'position': 'bottom', 'labels': {'font': {'size': 14}}}}
+  }
+) }}
             </div>
         </div>
     </div>
@@ -29,7 +44,24 @@
                 <h5 class="mb-0">Розподіл підрозділів за регіоном</h5>
             </div>
             <div class="card-body">
-                <canvas id="units-by-region-chart"></canvas>
+                {{ render_chart(
+  chart_id='units-by-region-chart',
+  chart_type='bar',
+  chart_data={
+    'labels': units_by_region.keys()|list,
+    'datasets': [{
+      'label': 'Кількість підрозділів',
+      'data': units_by_region.values()|list,
+      'backgroundColor': '#4e73df'
+    }]
+  },
+  chart_options={
+    'scales': {
+      'y': {'beginAtZero': True, 'ticks': {'precision': 0}}
+    },
+    'plugins': {'legend': {'display': false}}
+  }
+) }}
             </div>
         </div>
     </div>
@@ -199,62 +231,7 @@
 <script>
 // Ініціалізація графіків при завантаженні сторінки
 document.addEventListener('DOMContentLoaded', function() {
-    // Графік розподілу підрозділів за типом
-    const unitsByTypeChart = new Chart(
-        document.getElementById('units-by-type-chart').getContext('2d'),
-        {
-            type: 'pie',
-            data: {
-                labels: Object.keys({{ units_by_type|safe }}),
-                datasets: [{
-                    data: Object.values({{ units_by_type|safe }}),
-                    backgroundColor: [
-                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        }
-    );
-    
-    // Графік розподілу підрозділів за регіоном
-    const unitsByRegionChart = new Chart(
-        document.getElementById('units-by-region-chart').getContext('2d'),
-        {
-            type: 'bar',
-            data: {
-                labels: Object.keys({{ units_by_region|safe }}),
-                datasets: [{
-                    label: 'Кількість підрозділів',
-                    data: Object.values({{ units_by_region|safe }}),
-                    backgroundColor: '#4e73df'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        }
-    );
+    // Ініціалізація додаткових компонентів
 });
 
 // Функція для перегляду деталей підрозділу

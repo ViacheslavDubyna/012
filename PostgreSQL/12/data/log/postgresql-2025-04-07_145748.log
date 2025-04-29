@@ -1,0 +1,13 @@
+2025-04-07 14:57:48.244 EEST [4396] LOG:  database system was interrupted; last known up at 2025-04-07 14:54:52 EEST
+2025-04-07 14:57:50.139 EEST [4396] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-07 14:57:50.147 EEST [4396] LOG:  redo starts at 0/1650E58
+2025-04-07 14:57:50.148 EEST [4396] LOG:  invalid record length at 0/1650F40: wanted 24, got 0
+2025-04-07 14:57:50.149 EEST [4396] LOG:  redo done at 0/1650F08
+2025-04-07 14:57:50.195 EEST [5656] LOG:  database system is ready to accept connections
+2025-04-07 18:13:38.828 EEST [5656] LOG:  received fast shutdown request
+2025-04-07 18:13:38.843 EEST [5656] LOG:  aborting any active transactions
+2025-04-07 18:13:38.844 EEST [5712] ERROR:  canceling statement due to user request
+2025-04-07 18:13:38.844 EEST [6176] ERROR:  canceling statement due to user request
+2025-04-07 18:13:38.852 EEST [5656] LOG:  background worker "logical replication launcher" (PID 6176) exited with exit code 1
+2025-04-07 18:13:38.855 EEST [5876] LOG:  shutting down
+2025-04-07 18:13:38.910 EEST [5656] LOG:  database system is shut down

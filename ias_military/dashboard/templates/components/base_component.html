@@ -1,0 +1,5 @@
+{% macro component(name, params={}) %}
+  <div class="component {{ name }}">
+    {% include 'components/' + name + '.html' %}
+  </div>
+{% endmacro %}

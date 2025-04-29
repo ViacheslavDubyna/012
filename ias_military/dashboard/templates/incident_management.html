@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% from 'components/chart.html' import render_chart %}
+
+{% block title %}Управління інцидентами{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4 mb-4">Управління інцидентами</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie mr-1"></i>
+                    Інциденти за типом
+                </div>
+                <div class="card-body">
+                    {{ render_chart(
+  chart_id='incidentsByTypeChart',
+  chart_type='pie',
+  chart_data={
+    'labels': incidents_by_type.keys()|list,
+    'datasets': [{
+      'data': incidents_by_type.values()|list,
+      'backgroundColor': ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']
+    }]
+  }
+) }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Інциденти за рівнем важкості
+                </div>
+                <div class="card-body">
+                    {{ render_chart(
+  chart_id='incidentsBySeverityChart',
+  chart_type='bar',
+  chart_data={
+    'labels': incidents_by_severity.keys()|list,
+    'datasets': [{
+      'label': 'Кількість інцидентів',
+      'data': incidents_by_severity.values()|list,
+      'backgroundColor': '#4e73df'
+    }]
+  },
+  chart_options={
+    'scales': {'y': {'beginAtZero': True}}
+  }
+) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Список інцидентів
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="incidentsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Тип</th>
+                                    <th>Підтип</th>
+                                    <th>Місце</th>
+                                    <th>Дата/Час</th>
+                                    <th>Важкість</th>
+                                    <th>Статус</th>
+                                    <th>Дії</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for incident in incidents %}
+                                <tr>
+                                    <td>{{ incident.id }}</td>
+                                    <td>{{ incident.type }}</td>
+                                    <td>{{ incident.subtype }}</td>
+                                    <td>{{ incident.location }}</td>
+                                    <td>{{ incident.timestamp }}</td>
+                                    <td>
+                                        {% if incident.severity == 'critical' %}
+                                            <span class="badge badge-danger">Критичний</span>
+                                        {% elif incident.severity == 'high' %}
+                                            <span class="badge badge-warning">Високий</span>
+                                        {% elif incident.severity == 'medium' %}
+                                            <span class="badge badge-info">Середній</span>
+                                        {% else %}
+                                            <span class="badge badge-success">Низький</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if incident.status == 'active' %}
+                                            <span class="badge badge-danger">Активний</span>
+                                        {% elif incident.status == 'investigating' %}
+                                            <span class="badge badge-warning">Розслідування</span>
+                                        {% elif incident.status == 'contained' %}
+                                            <span class="badge badge-info">Локалізовано</span>
+                                        {% else %}
+                                            <span class="badge badge-success">Вирішено</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('dashboard.incident_details', incident_id=incident.id) }}" class="btn btn-sm btn-primary">Деталі</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Ініціалізація таблиці
+    $(document).ready(function() {
+        $('#incidentsTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Ukrainian.json'
+            }
+        });
+    });
+</script>
+{% endblock %}

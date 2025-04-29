@@ -14,6 +14,9 @@ DB_CONFIG = {
 # Формування URL для підключення до бази даних
 DB_URL = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
 
+# Шляхи до ML-моделей
+MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models')
+
 # Налаштування веб-сервера
 SERVER_CONFIG = {
     'host': '0.0.0.0',

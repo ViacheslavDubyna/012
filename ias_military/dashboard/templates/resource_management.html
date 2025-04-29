@@ -96,6 +96,25 @@
 </div>
 
 <div class="row mb-4">
+    <!-- Індикатори використання ресурсів -->
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Використання ресурсів</h5>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-indicators">
+                        <i class="fas fa-sync-alt me-1"></i> Оновити
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="resource-indicators" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
     <!-- Графіки розподілу ресурсів -->
     <div class="col-md-6 mb-3">
         <div class="card h-100">
@@ -281,6 +300,8 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Підключаємо скрипт для візуалізації ресурсів -->
+<script src="{{ url_for('static', filename='js/resource_visualization.js') }}"></script>
 <script>
     $(document).ready(function() {
         // Завантаження списку підрозділів
@@ -449,46 +470,48 @@
             success: function(data) {
                 // Графік розподілу ресурсів за типами
                 const typeCtx = document.getElementById('resource-type-chart').getContext('2d');
-                new Chart(typeCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: data.by_type.labels,
-                        datasets: [{
-                            data: data.by_type.values,
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.7)',
-                                'rgba(255, 99, 132, 0.7)',
-                                'rgba(255, 206, 86, 0.7)',
-                                'rgba(75, 192, 192, 0.7)',
-                                'rgba(153, 102, 255, 0.7)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    }
-                });
+                {{ render_chart(
+  chart_id='resource-type-chart',
+  chart_type='pie',
+  chart_data={
+    'labels': data.by_type.labels,
+    'datasets': [{
+      'data': data.by_type.values,
+      'backgroundColor': [
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 99, 132, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)'
+      ],
+      'borderWidth': 1
+    }]
+  }
+) }}
                 
                 // Графік розподілу ресурсів за статусом
                 const statusCtx = document.getElementById('resource-status-chart').getContext('2d');
-                new Chart(statusCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.by_status.labels,
-                        datasets: [{
-                            label: 'Кількість ресурсів',
-                            data: data.by_status.values,
-                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
+                {{ render_chart(
+  chart_id='resource-status-chart',
+  chart_type='bar',
+  chart_data={
+    'labels': data.by_status.labels,
+    'datasets': [{
+      'label': 'Кількість ресурсів',
+      'data': data.by_status.values,
+      'backgroundColor': 'rgba(54, 162, 235, 0.7)',
+      'borderColor': 'rgba(54, 162, 235, 1)',
+      'borderWidth': 1
+    }]
+  },
+  chart_options={
+    'scales': {
+      'y': {
+        'beginAtZero': true
+      }
+    }
+  }
+) }}
             },
             error: function(error) {
                 console.error('Помилка завантаження даних для графіків:', error);

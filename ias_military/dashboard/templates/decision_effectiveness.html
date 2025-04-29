@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Підтримка прийняття рішень - ІАС НГУ{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold animate__animated animate__fadeIn">СИСТЕМА ПІДТРИМКИ ПРИЙНЯТТЯ РІШЕНЬ</h1>
+            <p class="lead text-muted">Інструменти для аналізу ефективності рішень та підтримки прийняття управлінських рішень</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card h-100 animate__animated animate__fadeInUp">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Аналіз ефективності рішень</h5>
+                </div>
+                <div class="card-body">
+                    <p>Інструменти для оцінки ефективності прийнятих рішень на основі історичних даних та результатів операцій.</p>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="decision-effectiveness-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Рекомендаційна система</h5>
+                </div>
+                <div class="card-body">
+                    <p>Система рекомендацій для прийняття оптимальних рішень на основі аналізу даних та моделювання ситуацій.</p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> Для отримання рекомендацій виберіть тип ситуації та введіть параметри.
+                    </div>
+                    <form id="recommendation-form">
+                        <div class="mb-3">
+                            <label for="situation-type" class="form-label">Тип ситуації</label>
+                            <select class="form-select" id="situation-type">
+                                <option value="">Виберіть тип ситуації</option>
+                                <option value="public_disorder">Порушення громадського порядку</option>
+                                <option value="terrorist_threat">Терористична загроза</option>
+                                <option value="mass_riots">Масові заворушення</option>
+                                <option value="object_blocking">Блокування об'єктів</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">Отримати рекомендації</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ініціалізація графіка ефективності рішень
+        const decisionEffectivenessCtx = document.getElementById('decision-effectiveness-chart').getContext('2d');
+        new Chart(decisionEffectivenessCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Швидкість реагування', 'Ефективність використання ресурсів', 'Мінімізація ризиків', 'Досягнення цілей', 'Відповідність нормативам', 'Задоволеність керівництва'],
+                datasets: [{
+                    label: 'Поточний період',
+                    data: [85, 70, 65, 80, 90, 75],
+                    backgroundColor: 'rgba(0, 87, 183, 0.2)',
+                    borderColor: 'rgba(0, 87, 183, 1)',
+                    pointBackgroundColor: 'rgba(0, 87, 183, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(0, 87, 183, 1)'
+                }, {
+                    label: 'Попередній період',
+                    data: [65, 60, 70, 75, 80, 65],
+                    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                    borderColor: 'rgba(255, 215, 0, 1)',
+                    pointBackgroundColor: 'rgba(255, 215, 0, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(255, 215, 0, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                }
+            }
+        });
+
+        // Обробка форми рекомендацій
+        document.getElementById('recommendation-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const situationType = document.getElementById('situation-type').value;
+            
+            if (!situationType) {
+                alert('Будь ласка, виберіть тип ситуації');
+                return;
+            }
+            
+            // Тут буде запит до API для отримання рекомендацій
+            alert('Функціональність отримання рекомендацій знаходиться в розробці');
+        });
+    });
+</script>
+{% endblock %}

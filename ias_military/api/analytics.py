@@ -31,6 +31,18 @@ class NGUAnalytics:
         self.session = Session()
         self.models = {}
         self.models_dir = models_dir
+        
+        # Перевіряємо, чи вимкнено ML-функціонал
+        from flask import current_app
+        try:
+            disable_ml = current_app.config.get('DISABLE_ML', False)
+            if disable_ml:
+                print("ML-функціонал вимкнено. Моделі не будуть завантажені.")
+                return
+        except RuntimeError:
+            # Якщо немає активного контексту додатку, вважаємо, що ML увімкнено
+            pass
+            
         # Спробуємо завантажити збережені моделі при ініціалізації
         self.load_models(models_dir)
     

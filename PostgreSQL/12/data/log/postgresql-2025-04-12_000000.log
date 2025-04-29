@@ -1,0 +1,7 @@
+2025-04-12 04:14:04.386 EEST [5700] LOG:  received fast shutdown request
+2025-04-12 04:14:04.395 EEST [5700] LOG:  aborting any active transactions
+2025-04-12 04:14:04.395 EEST [1584] ERROR:  canceling statement due to user request
+2025-04-12 04:14:04.395 EEST [1668] ERROR:  canceling statement due to user request
+2025-04-12 04:14:04.409 EEST [5700] LOG:  background worker "logical replication launcher" (PID 1584) exited with exit code 1
+2025-04-12 04:14:04.429 EEST [3980] LOG:  shutting down
+2025-04-12 04:14:04.631 EEST [5700] LOG:  database system is shut down

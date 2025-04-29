@@ -1,0 +1,157 @@
+/* Стилі для карти та географічних елементів */
+
+/* Основні стилі для контейнера карти */
+.map-container {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Стилі для самої карти */
+#operational-map, #map {
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Стилі для легенди карти */
+.map-legend {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+    max-width: 200px;
+    font-size: 0.85rem;
+}
+
+.map-legend-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 5px;
+}
+
+.map-legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.map-legend-color {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Стилі для інформаційної панелі на карті */
+.map-overlay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+    max-width: 250px;
+    font-size: 0.85rem;
+}
+
+.map-overlay-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 5px;
+}
+
+.map-overlay-content p {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+/* Стилі для маркерів на карті */
+.map-marker {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.map-marker:hover {
+    transform: scale(1.2);
+}
+
+.map-marker-unit {
+    background-color: #0057b7;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.map-marker-incident {
+    background-color: #dc3545;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.map-marker-normal {
+    background-color: #28a745;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.map-marker-warning {
+    background-color: #ffc107;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.map-marker-danger {
+    background-color: #dc3545;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+/* Стилі для спливаючих вікон на карті */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    overflow: hidden;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+}
+
+.map-popup {
+    width: 250px;
+}
+
+.map-popup-header {
+    background-color: #0057b7;
+    color: white;
+    padding: 10px 15px;
+    font-weight: 500;
+}
+
+.map-popup-content {
+    padding: 15px;
+}
+
+.map-popup-footer {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);

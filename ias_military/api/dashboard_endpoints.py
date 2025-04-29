@@ -98,6 +98,66 @@ def get_threat_level_history():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/resources/distribution', methods=['GET'])
+def get_resources_distribution():
+    """Отримання даних про розподіл ресурсів для візуалізації"""
+    try:
+        # Отримуємо дані про ресурси з бази даних
+        resources = analytics.session.query(analytics.Resource).all()
+        
+        # Підготовка даних для відповіді
+        result = {
+            'resources': [],
+            'by_type': {},
+            'by_status': {}
+        }
+        
+        # Формуємо список ресурсів з відсотком використання
+        for resource in resources:
+            # Розраховуємо відсоток використання (для прикладу)
+            usage_percentage = random.randint(30, 95)  # В реальній системі тут буде реальний розрахунок
+            
+            result['resources'].append({
+                'id': resource.id,
+                'name': f"{resource.type} - {resource.subtype}",
+                'type': resource.type,
+                'subtype': resource.subtype,
+                'quantity': resource.quantity,
+                'status': resource.status,
+                'usage_percentage': usage_percentage
+            })
+            
+            # Групуємо за типом
+            if resource.type not in result['by_type']:
+                result['by_type'][resource.type] = {
+                    'count': 0,
+                    'percentage': 0
+                }
+            result['by_type'][resource.type]['count'] += 1
+            
+            # Групуємо за статусом
+            if resource.status not in result['by_status']:
+                result['by_status'][resource.status] = {
+                    'count': 0,
+                    'percentage': 0
+                }
+            result['by_status'][resource.status]['count'] += 1
+        
+        # Розраховуємо відсотки для типів
+        total_resources = len(resources)
+        for resource_type in result['by_type']:
+            result['by_type'][resource_type]['percentage'] = round(
+                (result['by_type'][resource_type]['count'] / total_resources) * 100, 1
+            ) if total_resources > 0 else 0
+        
+        # Розраховуємо відсотки для статусів
+        for status in result['by_status']:
+            result['by_status'][status]['percentage'] = round(
+                (result['by_status'][status]['count'] / total_resources) * 100, 1
+            ) if total_resources > 0 else 0
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 def get_resource_distribution():
     """Отримання розподілу ресурсів за типами"""
     try:

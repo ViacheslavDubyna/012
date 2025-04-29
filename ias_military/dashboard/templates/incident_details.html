@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Деталі інциденту{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Деталі інциденту #{{ incident.id }}</h1>
+        <a href="{{ url_for('dashboard.incident_management') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Повернутися до списку
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Основна інформація</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Дії:</div>
+                            <a class="dropdown-item" href="#">Редагувати</a>
+                            <a class="dropdown-item" href="#">Архівувати</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="#">Видалити</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%">Тип інциденту</th>
+                                    <td>{{ incident.type }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Підтип</th>
+                                    <td>{{ incident.subtype }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Місце</th>
+                                    <td>{{ incident.location }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Дата та час</th>
+                                    <td>{{ incident.timestamp }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Рівень важкості</th>
+                                    <td>
+                                        {% if incident.severity == 'critical' %}
+                                            <span class="badge badge-danger">Критичний</span>
+                                        {% elif incident.severity == 'high' %}
+                                            <span class="badge badge-warning">Високий</span>
+                                        {% elif incident.severity == 'medium' %}
+                                            <span class="badge badge-info">Середній</span>
+                                        {% else %}
+                                            <span class="badge badge-success">Низький</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Статус</th>
+                                    <td>
+                                        {% if incident.status == 'active' %}
+                                            <span class="badge badge-danger">Активний</span>
+                                        {% elif incident.status == 'investigating' %}
+                                            <span class="badge badge-warning">Розслідування</span>
+                                        {% elif incident.status == 'contained' %}
+                                            <span class="badge badge-info">Локалізовано</span>
+                                        {% else %}
+                                            <span class="badge badge-success">Вирішено</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Кількість постраждалих</th>
+                                    <td>{{ incident.casualties }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Пошкодження майна</th>
+                                    <td>{{ incident.property_damage }}</td>
+                                </tr>
+                                <tr>
+                                    <th>ID ситуації</th>
+                                    <td>{{ incident.situation_id }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Статус інциденту</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h4 class="small font-weight-bold">Прогрес розслідування <span class="float-right">
+                            {% if incident.status == 'active' %}20%{% endif %}
+                            {% if incident.status == 'investigating' %}50%{% endif %}
+                            {% if incident.status == 'contained' %}80%{% endif %}
+                            {% if incident.status == 'resolved' %}100%{% endif %}
+                        </span></h4>
+                        <div class="progress mb-4">
+                            {% if incident.status == 'active' %}
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% elif incident.status == 'investigating' %}
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% elif incident.status == 'contained' %}
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% else %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-warning">Розслідування</button>
+                            <button type="button" class="btn btn-info">Локалізувати</button>
+                            <button type="button" class="btn btn-success">Вирішити</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Пов'язані ресурси</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Підрозділ #123</h5>
+                                <small>Залучений</small>
+                            </div>
+                            <p class="mb-1">Спеціальний підрозділ швидкого реагування</p>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Ситуація #{{ incident.situation_id }}</h5>
+                                <small>Пов'язана</small>
+                            </div>
+                            <p class="mb-1">Перегляд пов'язаної ситуації</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Додаткові скрипти для сторінки деталей інциденту
+    $(document).ready(function() {
+        // Обробники подій для кнопок зміни статусу
+        $('.btn-group .btn').on('click', function() {
+            // Тут можна додати AJAX запит для оновлення статусу інциденту
+            alert('Функціональність зміни статусу буде реалізована пізніше');
+        });
+    });
+</script>
+{% endblock %}

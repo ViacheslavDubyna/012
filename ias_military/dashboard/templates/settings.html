@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}Налаштування системи - ІАС НГУ{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold animate__animated animate__fadeIn">НАЛАШТУВАННЯ СИСТЕМИ</h1>
+            <p class="lead text-muted">Конфігурація та налаштування інформаційно-аналітичної системи</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 animate__animated animate__fadeInUp">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Профіль користувача</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-placeholder mb-3">
+                            <i class="fas fa-user fa-3x"></i>
+                        </div>
+                        <h5>Адміністратор системи</h5>
+                        <p class="text-muted">admin@ngu.gov.ua</p>
+                    </div>
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user-edit me-2"></i> Редагувати профіль
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-key me-2"></i> Змінити пароль
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-shield-alt me-2"></i> Налаштування безпеки
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Налаштування системи</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">Загальні</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab" aria-controls="notifications" aria-selected="false">Сповіщення</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="integration-tab" data-bs-toggle="tab" data-bs-target="#integration" type="button" role="tab" aria-controls="integration" aria-selected="false">Інтеграції</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" type="button" role="tab" aria-controls="backup" aria-selected="false">Резервне копіювання</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content p-3" id="settingsTabsContent">
+                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                            <form id="general-settings-form">
+                                <div class="mb-3">
+                                    <label for="system-name" class="form-label">Назва системи</label>
+                                    <input type="text" class="form-control" id="system-name" value="Інформаційно-аналітична система Національної гвардії України">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="language" class="form-label">Мова інтерфейсу</label>
+                                    <select class="form-select" id="language">
+                                        <option value="uk" selected>Українська</option>
+                                        <option value="en">English</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="timezone" class="form-label">Часовий пояс</label>
+                                    <select class="form-select" id="timezone">
+                                        <option value="Europe/Kiev" selected>Київ (GMT+2)</option>
+                                        <option value="Europe/London">Лондон (GMT+0)</option>
+                                        <option value="America/New_York">Нью-Йорк (GMT-5)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="dark-mode">
+                                    <label class="form-check-label" for="dark-mode">Темна тема</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Зберегти налаштування</button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="notifications" role="tabpanel" aria-labelledby="notifications-tab">
+                            <form id="notifications-settings-form">
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="email-notifications" checked>
+                                    <label class="form-check-label" for="email-notifications">Сповіщення електронною поштою</label>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="sms-notifications">
+                                    <label class="form-check-label" for="sms-notifications">SMS-сповіщення</label>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="browser-notifications" checked>
+                                    <label class="form-check-label" for="browser-notifications">Сповіщення в браузері</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="notification-frequency" class="form-label">Частота сповіщень</label>
+                                    <select class="form-select" id="notification-frequency">
+                                        <option value="realtime" selected>В реальному часі</option>
+                                        <option value="hourly">Щогодини</option>
+                                        <option value="daily">Щодня</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Зберегти налаштування</button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="integration" role="tabpanel" aria-labelledby="integration-tab">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> Налаштування інтеграцій з іншими системами та сервісами.
+                            </div>
+                            <div class="list-group mb-3">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Система електронного документообігу</h6>
+                                        <p class="mb-0 small text-muted">Інтеграція з системою електронного документообігу</p>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="docs-integration" checked>
+                                    </div>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">ГІС-система</h6>
+                                        <p class="mb-0 small text-muted">Інтеграція з геоінформаційною системою</p>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="gis-integration" checked>
+                                    </div>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Система оповіщення</h6>
+                                        <p class="mb-0 small text-muted">Інтеграція з системою оповіщення</p>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="alert-integration">
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary">Зберегти налаштування</button>
+                        </div>
+                        <div class="tab-pane fade" id="backup" role="tabpanel" aria-labelledby="backup-tab">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i> Налаштування резервного копіювання доступні тільки для адміністраторів системи.
+                            </div>
+                            <div class="mb-3">
+                                <label for="backup-frequency" class="form-label">Частота резервного копіювання</label>
+                                <select class="form-select" id="backup-frequency">
+                                    <option value="daily" selected>Щодня</option>
+                                    <option value="weekly">Щотижня</option>
+                                    <option value="monthly">Щомісяця</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="backup-retention" class="form-label">Термін зберігання резервних копій</label>
+                                <select class="form-select" id="backup-retention">
+                                    <option value="7">7 днів</option>
+                                    <option value="30" selected>30 днів</option>
+                                    <option value="90">90 днів</option>
+                                    <option value="365">1 рік</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="auto-backup" checked>
+                                <label class="form-check-label" for="auto-backup">Автоматичне резервне копіювання</label>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary">Зберегти налаштування</button>
+                                <button class="btn btn-outline-secondary">Створити резервну копію зараз</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обробка форми загальних налаштувань
+        document.getElementById('general-settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Налаштування збережено успішно!');
+        });
+        
+        // Обробка форми налаштувань сповіщень
+        document.getElementById('notifications-settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Налаштування сповіщень збережено успішно!');
+        });
+    });
+</script>
+{% endblock %}

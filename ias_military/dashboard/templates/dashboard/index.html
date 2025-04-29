@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/app.js"></script>
+{% endblock %}
+
+{% block title %}Головна - ІАС НГУ{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Інформаційно-аналітична система Національної гвардії України</h2>
+        <p class="text-muted">Панель моніторингу та управління</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Статистика -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Підрозділи НГУ</h5>
+                <h2 class="card-text" id="units-count">-</h2>
+                <p class="card-text">Активних підрозділів</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Ресурси</h5>
+                <h2 class="card-text" id="resources-count">-</h2>
+                <p class="card-text">Доступних ресурсів</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Інциденти</h5>
+                <h2 class="card-text" id="incidents-count">-</h2>
+                <p class="card-text">За останні 30 днів</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Критичні ситуації</h5>
+                <h2 class="card-text" id="critical-situations-count">-</h2>
+                <p class="card-text">Потребують уваги</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Карта оперативної обстановки -->
+    <div class="col-md-8 mb-3">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Карта оперативної обстановки</h5>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">День</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Тиждень</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Місяць</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="operational-map" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Останні інциденти -->
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Останні інциденти</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="recent-incidents-list">
+                    <!-- Дані будуть завантажені через AJAX -->
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('dashboard.incident_management') }}" class="btn btn-sm btn-primary">Переглянути всі</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Графік рівня загроз -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Динаміка рівня загроз</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="threat-level-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Розподіл ресурсів -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Розподіл ресурсів за типами</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="resource-distribution-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Прогнози AI -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Прогнози AI-моделей</h5>
+            </div>
+            <div class="card-body">
+                <div class="row" id="ai-predictions">
+                    <!-- Дані будуть завантажені через AJAX -->
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('dashboard.prediction_tools') }}" class="btn btn-primary">Інструменти прогнозування</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Ініціалізація карти
+    const map = L.map('operational-map').setView([49.0, 31.0], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Завантаження даних для дашборду
+    $(document).ready(function() {
+        // Завантаження статистики
+        $.ajax({
+            url: '/api/dashboard/statistics',
+            method: 'GET',
+            success: function(data) {
+                $('#units-count').text(data.units_count);
+                $('#resources-count').text(data.resources_count);
+                $('#incidents-count').text(data.incidents_count);
+                $('#critical-situations-count').text(data.critical_situations_count);
+            },
+            error: function(error) {
+                console.error('Помилка завантаження статистики:', error);
+            }
+        });
+        
+        // Завантаження останніх інцидентів
+        $.ajax({
+            url: '/api/incidents/recent',
+            method: 'GET',
+            success: function(data) {
+                const incidentsList = $('#recent-incidents-list');
+                incidentsList.empty();
+                
+                if (data.length === 0) {
+                    incidentsList.append('<div class="list-group-item">Немає нових інцидентів</div>');
+                    return;
+                }
+                
+                data.forEach(function(incident) {
+                    let statusClass = '';
+                    if (incident.severity <= 2) statusClass = 'bg-success';
+                    else if (incident.severity <= 4) statusClass = 'bg-warning';
+                    else statusClass = 'bg-danger';
+                    
+                    const incidentItem = `
+                        <a href="/dashboard/incidents/${incident.id}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">${incident.type}</h6>
+                                <small>${new Date(incident.timestamp).toLocaleString()}</small>
+                            </div>
+                            <p class="mb-1">${incident.location}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small>${incident.status}</small>
+                                <span class="badge ${statusClass} status-badge">Рівень ${incident.severity}</span>
+                            </div>
+                        </a>
+                    `;
+                    incidentsList.append(incidentItem);
+                });
+            },
+            error: function(error) {
+                console.error('Помилка завантаження інцидентів:', error);
+                $('#recent-incidents-list').html('<div class="list-group-item">Помилка завантаження даних</div>');
+            }
+        });
+        
+        // Завантаження даних для графіка рівня загроз
+        $.ajax({
+            url: '/api/analytics/threat-level-history',
+            method: 'GET',
+            success: function(data) {
+                const ctx = document.getElementById('threat-level-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.dates,
+                        datasets: [{
+                            label: 'Середній рівень загрози',
+                            data: data.threat_levels,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 5
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(error) {
+                console.error('Помилка завантаження даних для графіка:', error);
+            }
+        });
+        
+        // Завантаження даних для графіка розподілу ресурсів
+        $.ajax({
+            url: '/api/resources/distribution',
+            method: 'GET',
+            success: function(data) {
+                const ctx = document.getElementById('resource-distribution-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.values,
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    }
+                });
+            },
+            error: function(error) {
+                console.error('Помилка завантаження даних для графіка:', error);
+            }
+        });
+        
+        // Завантаження прогнозів AI
+        $.ajax({
+            url: '/api/analytics/predictions',
+            method: 'GET',
+            success: function(data) {
+                const predictionsContainer = $('#ai-predictions');
+                predictionsContainer.empty();
+                
+                data.forEach(function(prediction) {
+                    let cardClass = '';
+                    if (prediction.confidence >= 0.8) cardClass = 'border-success';
+                    else if (prediction.confidence >= 0.6) cardClass = 'border-warning';
+                    else cardClass = 'border-danger';
+                    
+                    const predictionCard = `
+                        <div class="col-md-4 mb-3">
+                            <div class="card ${cardClass}">
+                                <div class="card-header">
+                                    <h6 class="mb-0">${prediction.type}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">${prediction.region} - ${prediction.location}</h5>
+                                    <p class="card-text">${prediction.description}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Значення: ${prediction.value.toFixed(2)}</span>
+                                        <span>Точність: ${(prediction.confidence * 100).toFixed(1)}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    predictionsContainer.append(predictionCard);
+                });
+            },
+            error: function(error) {
+                console.error('Помилка завантаження прогнозів:', error);
+                $('#ai-predictions').html('<div class="col-12"><div class="alert alert-danger">Помилка завантаження прогнозів</div></div>');
+            }
+        });
+        
+        // Завантаження маркерів для карти
+        $.ajax({
+            url: '/api/situations/map-data',
+            method: 'GET',
+            success: function(data) {
+                data.forEach(function(point) {
+                    const [lat, lng] = point.coordinates.split(',').map(coord => parseFloat(coord.trim()));
+                    let markerColor = 'blue';
+                    if (point.threat_level >= 4) markerColor = 'red';
+                    else if (point.threat_level >= 3) markerColor = 'orange';
+                    else if (point.threat_level >= 2) markerColor = 'yellow';
+                    
+                    const marker = L.circleMarker([lat, lng], {
+                        radius: 8,
+                        fillColor: markerColor,
+                        color: '#000',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map);
+                    
+                    marker.bindPopup(`
+                        <strong>${point.location}</strong><br>
+                        Статус: ${point.status}<br>
+                        Рівень загрози: ${point.threat_level}<br>
+                        Дата: ${new Date(point.timestamp).toLocaleString()}<br>
+                        <a href="/dashboard/situations/${point.id}">Детальніше</a>
+                    `);
+                });
+            },
+            error: function(error) {
+                console.error('Помилка завантаження даних для карти:', error);
+            }
+        });
+    });
+</script>
+{% endblock %}

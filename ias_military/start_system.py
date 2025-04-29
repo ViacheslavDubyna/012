@@ -8,6 +8,7 @@ import platform
 import webbrowser
 from setup_postgres import setup_postgres, check_postgres_running
 from config.config import SERVER_CONFIG
+from flask import Flask
 
 def print_header(message):
     """Виведення заголовка з форматуванням"""
@@ -46,6 +47,8 @@ def start_web_interface():
         # Імпортуємо функцію з run.py
         from run import create_app
         app = create_app()
+        with app.app_context():
+            pass
         
         # Виводимо інформацію про запуск
         host = SERVER_CONFIG['host']
@@ -76,6 +79,38 @@ def start_web_interface():
         print(f"Помилка при запуску веб-інтерфейсу: {e}")
         return False
 
+def check_dependencies():
+    """Перевірка наявності всіх необхідних залежностей"""
+    print_header("Перевірка наявності необхідних залежностей")
+    
+    required_packages = [
+        'flask', 'sqlalchemy', 'psycopg2', 'pandas', 'numpy', 
+        'scikit-learn', 'joblib', 'plotly', 'dash', 'requests'
+    ]
+    
+    missing_packages = []
+    
+    for package in required_packages:
+        try:
+            __import__(package)
+            print(f"✓ {package} встановлено")
+        except ImportError:
+            missing_packages.append(package)
+            print(f"✗ {package} не встановлено")
+    
+    if missing_packages:
+        print("\nВиявлено відсутні пакети. Спроба встановлення...")
+        for package in missing_packages:
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+                print(f"✓ {package} успішно встановлено")
+            except subprocess.CalledProcessError:
+                print(f"✗ Не вдалося встановити {package}")
+                print(f"  Спробуйте встановити вручну: pip install {package}")
+                return False
+    
+    return True
+
 def start_system():
     """Запуск всієї системи"""
     print_header("Запуск інформаційно-аналітичної системи Національної гвардії України")
@@ -84,6 +119,7 @@ def start_system():
     skip_db_setup = False
     skip_db_init = False
     skip_db_seed = False
+    skip_dependency_check = False
     
     if len(sys.argv) > 1:
         if "--help" in sys.argv or "-h" in sys.argv:
@@ -92,24 +128,41 @@ def start_system():
             print("  --skip-db-setup    Пропустити налаштування PostgreSQL")
             print("  --skip-db-init     Пропустити ініціалізацію бази даних")
             print("  --skip-db-seed     Пропустити заповнення бази даних тестовими даними")
+            print("  --skip-dependency-check  Пропустити перевірку залежностей")
             print("  --help, -h         Показати цю довідку")
             sys.exit(0)
         
         skip_db_setup = "--skip-db-setup" in sys.argv
         skip_db_init = "--skip-db-init" in sys.argv
         skip_db_seed = "--skip-db-seed" in sys.argv
+        skip_dependency_check = "--skip-dependency-check" in sys.argv
+    
+    # Перевірка залежностей
+    if not skip_dependency_check:
+        if not check_dependencies():
+            print("Виявлено проблеми з залежностями. Спробуйте встановити їх вручну:")
+            print("pip install -r requirements.txt")
+            print("Або запустіть систему з параметром --skip-dependency-check")
+            sys.exit(1)
+    else:
+        print("Пропускаємо перевірку залежностей...")
     
     # Налаштування PostgreSQL
     if not skip_db_setup:
         if not setup_postgres():
             print("Помилка при налаштуванні PostgreSQL. Перевірте налаштування та спробуйте знову.")
+            print("Переконайтеся, що PostgreSQL встановлено та служба запущена.")
             return False
     else:
         print("Пропускаємо налаштування PostgreSQL...")
         # Перевіряємо, чи запущено PostgreSQL
         if not check_postgres_running():
-            print("PostgreSQL не запущено. Запустіть PostgreSQL перед продовженням.")
-            return False
+            print("PostgreSQL не запущено. Спроба запуску...")
+            from setup_postgres import start_postgres
+            if not start_postgres():
+                print("Не вдалося запустити PostgreSQL. Перевірте налаштування та спробуйте знову.")
+                print("Можливо, потрібно запустити службу PostgreSQL вручну через 'services.msc'.")
+                return False
     
     # Ініціалізація бази даних
     if not skip_db_init:

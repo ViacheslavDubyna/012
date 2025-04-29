@@ -1,0 +1,17 @@
+2025-04-10 15:55:14.752 EEST [4148] LOG:  database system was shut down at 2025-04-10 15:54:43 EEST
+2025-04-10 15:55:14.781 EEST [5700] LOG:  database system is ready to accept connections
+2025-04-10 16:02:09.971 EEST [14140] FATAL:  password authentication failed for user "postgres"
+2025-04-10 16:02:09.971 EEST [14140] DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 82: "host    all             all             ::1/128                 md5"
+2025-04-10 16:02:59.378 EEST [10384] FATAL:  password authentication failed for user "postgres"
+2025-04-10 16:02:59.378 EEST [10384] DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 82: "host    all             all             ::1/128                 md5"
+2025-04-10 16:12:02.916 EEST [9140] FATAL:  password authentication failed for user "postgres"
+2025-04-10 16:12:02.916 EEST [9140] DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 82: "host    all             all             ::1/128                 md5"
+2025-04-10 16:16:09.457 EEST [16608] FATAL:  password authentication failed for user "postgres"
+2025-04-10 16:16:09.457 EEST [16608] DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 82: "host    all             all             ::1/128                 md5"
+2025-04-10 16:16:09.515 EEST [15412] FATAL:  password authentication failed for user "postgres"
+2025-04-10 16:16:09.515 EEST [15412] DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 82: "host    all             all             ::1/128                 md5"

@@ -1,8 +1,18 @@
 {% extends 'base.html' %}
-
-{% block title %}Головна - ІАС НГУ{% endblock %}
+{% from 'components/chart.html' import render_chart %}
 
 {% block content %}
+<div class="row mb-4">
+  <div class="col-12">
+    <h2>Інформаційно-аналітична система Національної гвардії України</h2>
+    {{ render_chart(
+      chart_id='mainSystemChart',
+      chart_type='line',
+      chart_data=system_data,
+      chart_options={ 'responsive': true }
+    ) }}
+  </div>
+</div>
 <div class="row mb-4">
     <div class="col-12">
         <h2>Інформаційно-аналітична система Національної гвардії України</h2>
@@ -203,28 +213,7 @@
             url: '/api/analytics/threat-level-history',
             method: 'GET',
             success: function(data) {
-                const ctx = document.getElementById('threat-level-chart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.dates,
-                        datasets: [{
-                            label: 'Середній рівень загрози',
-                            data: data.threat_levels,
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            tension: 0.1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 5
-                            }
-                        }
-                    }
-                });
+                {{ render_chart('threat-level-chart', 'line', chart_data, chart_options) }}
             },
             error: function(error) {
                 console.error('Помилка завантаження даних для графіка:', error);
@@ -236,24 +225,7 @@
             url: '/api/resources/distribution',
             method: 'GET',
             success: function(data) {
-                const ctx = document.getElementById('resource-distribution-chart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            data: data.values,
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.7)',
-                                'rgba(255, 99, 132, 0.7)',
-                                'rgba(255, 206, 86, 0.7)',
-                                'rgba(75, 192, 192, 0.7)',
-                                'rgba(153, 102, 255, 0.7)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    }
-                });
+                {{ render_chart('resource-distribution-chart', 'doughnut', chart_data, chart_options) }}
             },
             error: function(error) {
                 console.error('Помилка завантаження даних для графіка:', error);

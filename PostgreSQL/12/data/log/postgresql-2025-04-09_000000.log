@@ -1,0 +1,6 @@
+2025-04-10 15:32:29.174 EEST [12032] FATAL:  password authentication failed for user "postgres"
+2025-04-10 15:32:29.174 EEST [12032] DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 82: "host    all             all             ::1/128                 md5"
+2025-04-10 15:34:38.090 EEST [8224] FATAL:  password authentication failed for user "postgres"
+2025-04-10 15:34:38.090 EEST [8224] DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 82: "host    all             all             ::1/128                 md5"

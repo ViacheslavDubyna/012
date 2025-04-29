@@ -31,21 +31,25 @@ def check_postgres_installed():
     
     try:
         if platform.system() == 'Windows':
-            # Перевіряємо наявність PostgreSQL в реєстрі Windows
+            # Шукаємо службу з ім'ям, що містить PostgreSQL
+            cmd = ['sc', 'query', 'type=', 'service', 'state=', 'all']
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, _ = process.communicate()
+            
+            postgres_services = [line.split(b'POSTGRESQL')[0].strip() 
+                               for line in stdout.split(b'\r\n') 
+                               if b'POSTGRESQL' in line.upper()]
+            
+            if postgres_services:
+                print("PostgreSQL встановлено (знайдено службу).")
+                return True
+            
+            # Додаткова перевірка через реєстр та PATH
             try:
                 with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\PostgreSQL") as key:
                     print("PostgreSQL встановлено (знайдено в реєстрі).")
                     return True
             except WindowsError:
-                # Перевіряємо наявність служби PostgreSQL
-                cmd = ['sc', 'query', 'postgresql']
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, stderr = process.communicate()
-                if process.returncode == 0:
-                    print("PostgreSQL встановлено (знайдено службу).")
-                    return True
-                
-                # Перевіряємо наявність виконуваного файлу psql
                 paths = os.environ["PATH"].split(os.pathsep)
                 for path in paths:
                     psql_path = os.path.join(path, "psql.exe")
