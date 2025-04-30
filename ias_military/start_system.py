@@ -83,10 +83,35 @@ def check_dependencies():
     """Перевірка наявності всіх необхідних залежностей"""
     print_header("Перевірка наявності необхідних залежностей")
     
-    required_packages = [
-        'flask', 'sqlalchemy', 'psycopg2', 'pandas', 'numpy', 
-        'scikit-learn', 'joblib', 'plotly', 'dash', 'requests'
-    ]
+    # Читаємо requirements.txt, щоб отримати список пакетів
+    required_packages = []
+    try:
+        with open('requirements.txt', 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    # Видаляємо специфікацію версії (==, >=, <=, > , <)
+                    package_name = line.split('==')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0]
+                    # Зіставлення імен пакетів з requirements.txt з іменами для імпорту
+                    import_name_map = {
+                        'scikit-learn': 'sklearn',
+                        'python-dateutil': 'dateutil',
+                        'psycopg2-binary': 'psycopg2',
+                        'Werkzeug': 'werkzeug', # Ім'я модуля з маленької літери
+                        'Jinja2': 'jinja2',     # Ім'я модуля з маленької літери
+                        'MarkupSafe': 'markupsafe' # Ім'я модуля з маленької літери
+                        # Пакети dash-* є частиною dash, їх не треба перевіряти окремо
+                    }
+                    # Виключаємо компоненти dash з перевірки
+                    dash_components = ['dash-core-components', 'dash-html-components', 'dash-table']
+                    if package_name not in dash_components:
+                        import_name = import_name_map.get(package_name, package_name)
+                        required_packages.append(import_name)
+    except FileNotFoundError:
+        print("Помилка: Файл requirements.txt не знайдено.")
+        return False
+    
+    print(f"Перевірка пакетів: {', '.join(required_packages)}")
     
     missing_packages = []
     
@@ -99,16 +124,38 @@ def check_dependencies():
             print(f"✗ {package} не встановлено")
     
     if missing_packages:
-        print("\nВиявлено відсутні пакети. Спроба встановлення...")
-        for package in missing_packages:
-            try:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-                print(f"✓ {package} успішно встановлено")
-            except subprocess.CalledProcessError:
-                print(f"✗ Не вдалося встановити {package}")
-                print(f"  Спробуйте встановити вручну: pip install {package}")
-                return False
-    
+        print("\nВиявлено відсутні пакети. Спроба встановлення з requirements.txt...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+            print("✓ Усі залежності успішно встановлено з requirements.txt")
+            # Повторна перевірка після встановлення
+             print("Повторна перевірка залежностей...")
+             all_installed = True
+             # Перевіряємо тільки ті пакети, які ми додали до required_packages (з правильними іменами для імпорту)
+             for import_name in required_packages:
+                 try:
+                     __import__(import_name)
+                     print(f"✓ {import_name} тепер встановлено")
+                 except ImportError:
+                     # Спробуємо знайти оригінальне ім'я пакету для повідомлення про помилку
+                     original_name = import_name # За замовчуванням
+                     for req_name, imp_name in import_name_map.items():
+                         if imp_name == import_name:
+                             original_name = req_name
+                             break
+                     print(f"✗ Пакет '{original_name}' (імпорт як '{import_name}') все ще не встановлено після спроби встановлення.")
+                     all_installed = False
+             if not all_installed:
+                  print("✗ Не вдалося встановити/знайти всі необхідні залежності. Перевірте файл requirements.txt та вивід pip.")
+                  return False
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Помилка під час виконання 'pip install -r requirements.txt': {e}")
+            print("  Перевірте файл requirements.txt та наявність pip.")
+            return False
+        except Exception as e:
+            print(f"✗ Непередбачена помилка під час встановлення залежностей: {e}")
+            return False
+
     return True
 
 def start_system():
