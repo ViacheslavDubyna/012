@@ -828,7 +828,7 @@ def update_ai_predictions(n):
     
     return prediction_cards
 
-# Запуск сервера
+# НЕ ЗАПУСКАЄМО app.run_server() тут, оскільки інтеграція здійснюється через DispatcherMiddleware у Flask
 if __name__ == '__main__':
     app.run_server(debug=True, port=8050)
     print("Сервер запущено. Відкрийте http://127.0.0.1:8050/ у вашому браузері.")

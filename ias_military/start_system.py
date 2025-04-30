@@ -68,12 +68,17 @@ def start_web_interface():
         import threading
         threading.Thread(target=open_browser).start()
         
-        # Запускаємо додаток
-        app.run(
-            debug=SERVER_CONFIG['debug'], 
-            host=SERVER_CONFIG['host'], 
-            port=SERVER_CONFIG['port']
-        )
+        # Запускаємо додаток через dispatcher для інтеграції Dash
+        from run import register_dashapp
+        from werkzeug.serving import run_simple
+        try:
+            dispatcher = register_dashapp(app)
+        except Exception as e:
+            print(f"Помилка при інтеграції Dash з Flask: {e}")
+            print("Запуск системи без інтеграції з Dash...")
+            dispatcher = app
+            
+        run_simple(host, port, dispatcher, use_reloader=SERVER_CONFIG['debug'], use_debugger=SERVER_CONFIG['debug'])
         return True
     except Exception as e:
         print(f"Помилка при запуску веб-інтерфейсу: {e}")
@@ -129,10 +134,10 @@ def check_dependencies():
             subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
             print("✓ Усі залежності успішно встановлено з requirements.txt")
             # Повторна перевірка після встановлення
-             print("Повторна перевірка залежностей...")
-             all_installed = True
-             # Перевіряємо тільки ті пакети, які ми додали до required_packages (з правильними іменами для імпорту)
-             for import_name in required_packages:
+            print("Повторна перевірка залежностей...")
+            all_installed = True
+            # Перевіряємо тільки ті пакети, які ми додали до required_packages (з правильними іменами для імпорту)
+            for import_name in required_packages:
                  try:
                      __import__(import_name)
                      print(f"✓ {import_name} тепер встановлено")
@@ -145,7 +150,7 @@ def check_dependencies():
                              break
                      print(f"✗ Пакет '{original_name}' (імпорт як '{import_name}') все ще не встановлено після спроби встановлення.")
                      all_installed = False
-             if not all_installed:
+            if not all_installed:
                   print("✗ Не вдалося встановити/знайти всі необхідні залежності. Перевірте файл requirements.txt та вивід pip.")
                   return False
         except subprocess.CalledProcessError as e:

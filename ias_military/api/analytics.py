@@ -25,26 +25,30 @@ from database.models import OperationalSituation, Resource, ResourceAllocation, 
 DB_URL = "postgresql://postgres:postgres@localhost:5432/ngu_ias"
 
 class NGUAnalytics:
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(NGUAnalytics, cls).__new__(cls)
+        return cls._instance
     def __init__(self, db_url=DB_URL, models_dir='models'):
+        if hasattr(self, '_initialized') and self._initialized:
+            return
         self.engine = create_engine(db_url)
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
         self.models = {}
         self.models_dir = models_dir
-        
-        # Перевіряємо, чи вимкнено ML-функціонал
         from flask import current_app
         try:
             disable_ml = current_app.config.get('DISABLE_ML', False)
             if disable_ml:
                 print("ML-функціонал вимкнено. Моделі не будуть завантажені.")
+                self._initialized = True
                 return
         except RuntimeError:
-            # Якщо немає активного контексту додатку, вважаємо, що ML увімкнено
             pass
-            
-        # Спробуємо завантажити збережені моделі при ініціалізації
         self.load_models(models_dir)
+        self._initialized = True
     
     def get_situation_data(self):
         """Отримання даних про оперативну обстановку"""
