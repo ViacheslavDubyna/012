@@ -6,6 +6,8 @@ import time
 import subprocess
 import platform
 import webbrowser
+import subprocess
+import ctypes
 from setup_postgres import setup_postgres, check_postgres_running
 from config.config import SERVER_CONFIG
 from flask import Flask
@@ -88,10 +90,14 @@ def check_dependencies():
     """Перевірка наявності всіх необхідних залежностей"""
     print_header("Перевірка наявності необхідних залежностей")
     
+    # Визначаємо шлях до папки зі скриптом
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    requirements_path = os.path.join(script_dir, 'requirements.txt')
+
     # Читаємо requirements.txt, щоб отримати список пакетів
     required_packages = []
     try:
-        with open('requirements.txt', 'r') as f:
+        with open(requirements_path, 'r') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#'):
@@ -113,7 +119,7 @@ def check_dependencies():
                         import_name = import_name_map.get(package_name, package_name)
                         required_packages.append(import_name)
     except FileNotFoundError:
-        print("Помилка: Файл requirements.txt не знайдено.")
+        print(f"Помилка: Файл {requirements_path} не знайдено.")
         return False
     
     print(f"Перевірка пакетів: {', '.join(required_packages)}")
@@ -129,9 +135,9 @@ def check_dependencies():
             print(f"✗ {package} не встановлено")
     
     if missing_packages:
-        print("\nВиявлено відсутні пакети. Спроба встановлення з requirements.txt...")
+        print(f"\nВиявлено відсутні пакети. Спроба встановлення з {requirements_path}...")
         try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_path])
             print("✓ Усі залежності успішно встановлено з requirements.txt")
             # Повторна перевірка після встановлення
             print("Повторна перевірка залежностей...")
@@ -151,11 +157,11 @@ def check_dependencies():
                      print(f"✗ Пакет '{original_name}' (імпорт як '{import_name}') все ще не встановлено після спроби встановлення.")
                      all_installed = False
             if not all_installed:
-                  print("✗ Не вдалося встановити/знайти всі необхідні залежності. Перевірте файл requirements.txt та вивід pip.")
+                  print(f"✗ Не вдалося встановити/знайти всі необхідні залежності. Перевірте файл {requirements_path} та вивід pip.")
                   return False
         except subprocess.CalledProcessError as e:
-            print(f"✗ Помилка під час виконання 'pip install -r requirements.txt': {e}")
-            print("  Перевірте файл requirements.txt та наявність pip.")
+            print(f"✗ Помилка під час виконання 'pip install -r {requirements_path}': {e}")
+            print(f"  Перевірте файл {requirements_path} та наявність pip.")
             return False
         except Exception as e:
             print(f"✗ Непередбачена помилка під час встановлення залежностей: {e}")
@@ -192,8 +198,12 @@ def start_system():
     # Перевірка залежностей
     if not skip_dependency_check:
         if not check_dependencies():
+            # Визначаємо шлях до папки зі скриптом для повідомлення про помилку
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            requirements_path = os.path.join(script_dir, 'requirements.txt')
             print("Виявлено проблеми з залежностями. Спробуйте встановити їх вручну:")
-            print("pip install -r requirements.txt")
+            # Додаємо лапки навколо шляху на випадок пробілів
+            print(f'pip install -r "{requirements_path}"')
             print("Або запустіть систему з параметром --skip-dependency-check")
             sys.exit(1)
     else:
@@ -232,12 +242,58 @@ def start_system():
     else:
         print("Пропускаємо заповнення бази даних тестовими даними...")
     
-    # Запуск веб-інтерфейсу
-    if not start_web_interface():
-        print("Помилка при запуску веб-інтерфейсу. Перевірте налаштування та спробуйте знову.")
-        return False
+    # 5. Запуск веб-інтерфейсу через run.py
+    print_header("Запуск веб-інтерфейсу системи")
+    try:
+        # Визначаємо шлях до інтерпретатора Python
+        python_executable = sys.executable
+        run_script_path = os.path.join(os.path.dirname(__file__), 'run.py')
+        
+        # Перевіряємо наявність --disable-ml аргументу
+        run_args = [python_executable, run_script_path]
+        if '--disable-ml' in sys.argv:
+            run_args.append('--disable-ml')
+            
+        print(f"Запуск команди: {' '.join(run_args)}")
+        
+        # Запускаємо run.py як окремий процес
+        # Ми не чекаємо завершення процесу, оскільки це веб-сервер
+        process = subprocess.Popen(run_args, cwd=os.path.dirname(__file__))
+        
+        # Виводимо інформацію про запуск (URL беремо з конфігурації)
+        host = SERVER_CONFIG['host']
+        port = SERVER_CONFIG['port']
+        url = f"http://{'127.0.0.1' if host == '0.0.0.0' else host}:{port}"
+        print(f"\nВеб-інтерфейс повинен бути доступний за адресою: {url}")
+        print(f"Дашборд: {url}/dashboard/improved")
+        print("Сервер запущено у фоновому режимі. Натисніть Ctrl+C для зупинки, якщо потрібно.")
+        
+        # Відкриваємо браузер
+        def open_browser_thread():
+            time.sleep(5) # Даємо більше часу на запуск сервера
+            print(f"Спроба відкрити {url} у браузері...")
+            try:
+                webbrowser.open(url)
+                print("Браузер відкрито.")
+            except Exception as browser_err:
+                print(f"Не вдалося автоматично відкрити браузер: {browser_err}")
+                print(f"Будь ласка, відкрийте {url} вручну.")
+
+        import threading
+        browser_thread = threading.Thread(target=open_browser_thread)
+        browser_thread.start()
+        
+        # Очікуємо завершення процесу сервера (необов'язково, але може бути корисним для логування)
+        # process.wait() # Розкоментуйте, якщо хочете, щоб start_system чекав завершення run.py
+
+    except Exception as e:
+        import traceback
+        print(f"\n✗ Помилка запуску run.py: {e}")
+        print(f"Трасування стеку:\n{traceback.format_exc()}")
+        sys.exit(1)
     
     return True
 
 if __name__ == '__main__':
+    # Перевірка прав адміністратора видалена
     start_system()

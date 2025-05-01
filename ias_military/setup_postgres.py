@@ -18,21 +18,37 @@ def check_postgres_running():
     try:
         # Команда для перевірки статусу PostgreSQL
         if platform.system() == 'Windows':
-            # Шукаємо точну назву служби PostgreSQL
-            cmd_find = ['sc', 'query', 'type=', 'service', 'state=', 'all']
-            process = subprocess.Popen(cmd_find, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, _ = process.communicate()
-            
-            # Шукаємо службу з ім'ям, що містить 'PostgreSQL'
-            postgres_services = [line.split(b'postgresql')[0].strip() for line in stdout.split(b'\r\n') if b'postgresql' in line.lower()]
-            if not postgres_services:
-                return False
-                
-            service_name = postgres_services[0].decode('utf-8')
+            # Використовуємо точне ім'я служби PostgreSQL
+            service_name = 'postgresql-x64-17' # Явно вказуємо ім'я служби
+            print(f"Перевірка статусу служби: {service_name}")
             cmd = ['sc', 'query', service_name]
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, _ = process.communicate()
-            return b'RUNNING' in stdout
+            print(f"Виконання команди: {' '.join(cmd)}")
+            try:
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='cp866') # Використовуємо text=True та кодування
+                stdout, stderr = process.communicate()
+                print(f"Вивід stdout:\n{stdout}")
+                if stderr:
+                    print(f"Вивід stderr:\n{stderr}")
+                
+                # Перевіряємо стан служби
+                if process.returncode == 0 and stdout:
+                    # Шукаємо рядок зі станом
+                    state_line = next((line for line in stdout.splitlines() if 'STATE' in line), None)
+                    if state_line and 'RUNNING' in state_line:
+                        print(f"Служба {service_name} знайдена у стані RUNNING.")
+                        return True
+                    else:
+                        print(f"Служба {service_name} не знайдена у стані RUNNING. Поточний стан: {state_line}")
+                        return False
+                else:
+                    print(f"Помилка виконання команди 'sc query' або порожній вивід. Код повернення: {process.returncode}")
+                    return False
+            except FileNotFoundError:
+                print(f"Помилка: Команда 'sc' не знайдена. Переконайтеся, що ви запускаєте скрипт у Windows з відповідними правами.")
+                return False
+            except Exception as query_err:
+                print(f"Неочікувана помилка під час виконання 'sc query': {query_err}")
+                return False
         else:
             # Для Linux/Mac використовуємо systemctl або pg_isready
             cmd = ['pg_isready']
@@ -198,40 +214,18 @@ def setup_postgres():
     """Налаштування PostgreSQL"""
     # Перевіряємо, чи запущено PostgreSQL
     if not check_postgres_running():
-        print("\n✗ PostgreSQL не запущено. Спроба автоматичного запуску...")
-        if not start_postgres(): # Спробуємо запустити службу
-            print("\n✗ Не вдалося автоматично запустити PostgreSQL.")
-            print("Будь ласка, запустіть службу PostgreSQL вручну:")
-            print("  1. Натисніть Win + R, введіть 'services.msc' та натисніть Enter.")
-            print("  2. Знайдіть службу, що містить 'PostgreSQL' (наприклад, 'postgresql-x64-17').")
-            print("  3. Клацніть правою кнопкою миші та виберіть 'Запустити'.")
-            print("Після запуску служби, будь ласка, перезапустіть систему за допомогою 'start_system.py'.")
-            return False
-        else:
-            # Перевіримо ще раз після спроби запуску
-            if not check_postgres_running():
-                 print("\n✗ PostgreSQL все ще не запущено після спроби старту. Перевірте логи.")
-                 return False
-            print("\n✓ PostgreSQL успішно запущено або вже працював.")
+        print("\n✗ Служба PostgreSQL не запущена.")
+        print("Будь ласка, запустіть службу PostgreSQL вручну перед продовженням:")
+        print("  1. Натисніть Win + R, введіть 'services.msc' та натисніть Enter.")
+        print("  2. Знайдіть службу, що містить 'PostgreSQL' (наприклад, 'postgresql-x64-17').")
+        print("  3. Клацніть правою кнопкою миші та виберіть 'Запустити'.")
+        print("Після запуску служби, будь ласка, перезапустіть систему за допомогою 'start_system.py'.")
+        return False # Повертаємо False, якщо служба не запущена
     else:
         print("\n✓ PostgreSQL вже запущено.")
 
-    # Налаштування бази даних
-    try:
-        from database.setup_db import setup_database
-        if setup_database():
-            print("\n✓ База даних успішно налаштована.")
-            return True
-        else:
-            print("\n✗ Помилка під час налаштування бази даних.")
-            return False
-    except ImportError:
-        print("\n✗ Помилка: Не вдалося імпортувати 'setup_database' з 'database.setup_db'.")
-        return False
-    except Exception as e:
-        import traceback
-        print(f"\n✗ ПОМИЛКА НАЛАШТУВАННЯ БАЗИ: {e}\nТрасування стеку:\n{traceback.format_exc()}")
-        return False
+    # Якщо перевірка пройшла успішно, повертаємо True
+    return True
 
 if __name__ == '__main__':
     if setup_postgres():

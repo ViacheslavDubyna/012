@@ -1,0 +1,139 @@
+{
+    "data": [
+        {
+            "date": "2025-03-21",
+            "location": "A         ",
+            "data_field": 4
+        },
+        {
+            "date": "2025-03-21",
+            "location": "B         ",
+            "data_field": 12
+        },
+        {
+            "date": "2025-03-21",
+            "location": "C         ",
+            "data_field": 8
+        },
+        {
+            "date": "2025-03-20",
+            "location": "A         ",
+            "data_field": 9
+        },
+        {
+            "date": "2025-03-20",
+            "location": "B         ",
+            "data_field": 17
+        },
+        {
+            "date": "2025-03-20",
+            "location": "C         ",
+            "data_field": 6
+        },
+        {
+            "date": "2025-03-19",
+            "location": "A         ",
+            "data_field": 17
+        },
+        {
+            "date": "2025-03-19",
+            "location": "B         ",
+            "data_field": 12
+        },
+        {
+            "date": "2025-03-19",
+            "location": "C         ",
+            "data_field": 10
+        },
+        {
+            "date": "2025-03-18",
+            "location": "A         ",
+            "data_field": 13
+        },
+        {
+            "date": "2025-03-18",
+            "location": "B         ",
+            "data_field": 4
+        },
+        {
+            "date": "2025-03-18",
+            "location": "C         ",
+            "data_field": 20
+        },
+        {
+            "date": "2025-03-17",
+            "location": "A         ",
+            "data_field": 12
+        },
+        {
+            "date": "2025-03-17",
+            "location": "B         ",
+            "data_field": 18
+        },
+        {
+            "date": "2025-03-17",
+            "location": "C         ",
+            "data_field": 10
+        },
+        {
+            "date": "2025-03-16",
+            "location": "A         ",
+            "data_field": 19
+        },
+        {
+            "date": "2025-03-16",
+            "location": "B         ",
+            "data_field": 10
+        },
+        {
+            "date": "2025-03-16",
+            "location": "C         ",
+            "data_field": 12
+        },
+        {
+            "date": "2025-03-15",
+            "location": "A         ",
+            "data_field": 3
+        },
+        {
+            "date": "2025-03-15",
+            "location": "B         ",
+            "data_field": 19
+        },
+        {
+            "date": "2025-03-15",
+            "location": "C         ",
+            "data_field": 20
+        },
+        {
+            "date": "2025-03-14",
+            "location": "A         ",
+            "data_field": 20
+        },
+        {
+            "date": "2025-03-14",
+            "location": "B         ",
+            "data_field": 2
+        },
+        {
+            "date": "2025-03-14",
+            "location": "C         ",
+            "data_field": 16
+        },
+        {
+            "date": "2025-03-13",
+            "location": "A         ",
+            "data_field": 16
+        },
+        {
+            "date": "2025-03-13",
+            "location": "B         ",
+            "data_field": 13
+        },
+        {
+            "date": "2025-03-13",
+            "location": "C         ",
+            "data_field": 14
+        }
+    ]
+}
