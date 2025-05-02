@@ -15,4 +15,4 @@ from .routes_prediction import *
 # Імпортуємо маршрути для підтримки прийняття рішень та налаштувань
 from .routes_decision import *
 # Імпортуємо маршрути для вдосконаленого дашборду
-from .improved_dashboard_routes import improved_dashboard, register_dashapp
+from .improved_dashboard_routes import improved_dashboard, init_dash

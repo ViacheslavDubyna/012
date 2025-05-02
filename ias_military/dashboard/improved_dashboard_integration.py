@@ -1,5 +1,5 @@
 # Вдосконалений дашборд для інформаційно-аналітичної системи Національної гвардії України
-# Інтеграція з API-ендпоінтами та покращена візуалізація
+# Інтеграція з API-ендпоіттами та покращена візуалізація
 
 import dash
 from dash import dcc, html
@@ -13,10 +13,13 @@ from datetime import datetime, timedelta
 from collections import Counter
 import json
 import os
-
-# Ініціалізація додатку Dash з покращеними метаданими
+ 
+# Ініціалізація додатку Dash з покращеними метаданими та префіксами шляхів
 app = dash.Dash(
     __name__,
+    # server=False, # Видалено, оскільки init_app буде використано
+    routes_pathname_prefix='/dashboard/improved/',
+    requests_pathname_prefix='/dashboard/improved/',
     meta_tags=[
         {"name": "viewport", "content": "width=device-width, initial-scale=1.0"}
     ],
@@ -84,161 +87,122 @@ def get_recent_incidents():
 def get_threat_level_history():
     try:
         response = requests.get(f"{API_BASE_URL}/analytics/threat-level-history")
+        response.raise_for_status()
         return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Помилка мережі при отриманні історії рівня загрози: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Помилка декодування JSON історії рівня загрози: {e}")
     except Exception as e:
-        print(f"Помилка при отриманні історії рівня загрози: {e}")
-        # Повертаємо тестові дані у випадку помилки
-        dates = [(datetime.now() - timedelta(days=i)).strftime('%d.%m.%Y') for i in range(30, 0, -1)]
-        return {
-            'dates': dates,
-            'threat_levels': [np.random.randint(30, 80) for _ in range(30)]
-        }
+        print(f"Загальна помилка при отриманні історії рівня загрози: {e}")
+    # Повертаємо порожні дані у випадку помилки
+    return {'dates': [], 'threat_levels': []}
 
 def get_resources_distribution():
     try:
         response = requests.get(f"{API_BASE_URL}/resources/distribution")
+        response.raise_for_status()
         return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Помилка мережі при отриманні розподілу ресурсів: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Помилка декодування JSON розподілу ресурсів: {e}")
     except Exception as e:
-        print(f"Помилка при отриманні розподілу ресурсів: {e}")
-        # Повертаємо тестові дані у випадку помилки
-        resources = [
-            'Військове обладнання', 'Гуманітарна допомога', 'Енергетичні ресурси',
-            'Медичні засоби', 'Системи зв\'язку', 'Транспорт', 'Продовольство'
-        ]
-        return {
-            'resources': [
-                {'id': i+1, 'name': res, 'type': res.split()[0], 'usage_percentage': np.random.randint(50, 95)}
-                for i, res in enumerate(resources)
-            ],
-            'by_type': {
-                res.split()[0]: {'count': np.random.randint(10, 50), 'percentage': np.random.randint(10, 30)}
-                for res in resources
-            },
-            'by_status': {
-                'Доступний': {'count': 120, 'percentage': 80},
-                'В ремонті': {'count': 15, 'percentage': 10},
-                'Недоступний': {'count': 15, 'percentage': 10}
-            }
-        }
+        print(f"Загальна помилка при отриманні розподілу ресурсів: {e}")
+    # Повертаємо порожні дані у випадку помилки
+    return {'resources': [], 'by_type': {}, 'by_status': {}}
 
 def get_map_data():
     try:
         response = requests.get(f"{API_BASE_URL}/situations/map-data")
+        response.raise_for_status()
         return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Помилка мережі при отриманні даних для карти: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Помилка декодування JSON даних для карти: {e}")
     except Exception as e:
-        print(f"Помилка при отриманні даних для карти: {e}")
-        # Повертаємо тестові дані у випадку помилки
-        regions = [
-            'Київська', 'Львівська', 'Харківська', 'Одеська', 'Дніпропетровська',
-            'Донецька', 'Луганська', 'Запорізька', 'Херсонська'
-        ]
-        statuses = ['Нормальна', 'Напружена', 'Критична']
-        return [
-            {
-                'id': i+1,
-                'location': region,
-                'region': region,
-                'status': np.random.choice(statuses),
-                'threat_level': np.random.randint(1, 10),
-                'timestamp': datetime.now().isoformat(),
-                'coordinates': f"{np.random.uniform(44.0, 52.0):.6f}, {np.random.uniform(22.0, 40.0):.6f}"
-            }
-            for i, region in enumerate(regions)
-        ]
+        print(f"Загальна помилка при отриманні даних для карти: {e}")
+    # Повертаємо порожній список у випадку помилки
+    return []
 
 def get_ai_predictions():
     try:
         response = requests.get(f"{API_BASE_URL}/analytics/predictions")
+        response.raise_for_status()
         return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Помилка мережі при отриманні прогнозів AI: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Помилка декодування JSON прогнозів AI: {e}")
     except Exception as e:
-        print(f"Помилка при отриманні прогнозів AI: {e}")
-        # Повертаємо тестові дані у випадку помилки
-        return [
-            {
-                'id': 1,
-                'type': 'Загроза безпеці',
-                'region': 'Харківська',
-                'location': 'Харків',
-                'value': 8.5,
-                'confidence': 0.85,
-                'description': 'Прогнозується підвищення рівня загрози в регіоні',
-                'timestamp': datetime.now().isoformat()
-            }
-        ]
+        print(f"Загальна помилка при отриманні прогнозів AI: {e}")
+    # Повертаємо порожній список у випадку помилки
+    return []
 
 # Функції для створення графіків
-def create_ukraine_map(map_data=None):
-    if map_data is None:
-        map_data = get_map_data()
-    
+def create_ukraine_map(map_data):
     # Створюємо базову карту
     fig = go.Figure()
-    
+
     # Додаємо маркери для кожної ситуації
-    for situation in map_data:
-        # Парсимо координати
-        try:
-            lat, lon = map(float, situation['coordinates'].split(','))
-        except:
-            continue
-        
-        # Визначаємо колір маркера залежно від статусу
-        if situation['status'] == 'Критична':
-            marker_color = colors['danger']
-        elif situation['status'] == 'Напружена':
-            marker_color = colors['warning']
-        else:
-            marker_color = colors['success']
-        
-        # Додаємо маркер
-        fig.add_trace(go.Scattergeo(
-            lon=[lon],
-            lat=[lat],
-            text=situation['location'],
-            mode='markers',
-            marker=dict(
-                size=10,
-                color=marker_color,
-                line=dict(width=1, color='white')
-            ),
-            hoverinfo='text',
-            hovertext=f"<b>{situation['location']}</b><br>" +
-                      f"Статус: {situation['status']}<br>" +
-                      f"Рівень загрози: {situation['threat_level']}/10<br>" +
-                      f"Оновлено: {situation['timestamp'].split('T')[0]}"
-        ))
-    
-    # Налаштовуємо вигляд карти
-    fig.update_geos(
-        visible=False,
-        resolution=50,
-        scope="europe",
-        showcountries=True,
-        countrycolor="gray",
-        showsubunits=True,
-        subunitcolor="blue",
-        center=dict(lon=31.1656, lat=48.3794),  # Центр України
-        projection_scale=5
-    )
-    
+    if map_data:
+        lats = []
+        lons = []
+        texts = []
+        colors_map = []
+        for situation in map_data:
+            # Парсимо координати
+            try:
+                lat, lon = map(float, situation['coordinates'].split(','))
+                lats.append(lat)
+                lons.append(lon)
+                texts.append(f"{situation.get('location', 'N/A')} ({situation.get('status', 'N/A')})")
+                # Визначаємо колір маркера залежно від статусу
+                status = situation.get('status', 'Нормальна')
+                if status == 'Критична':
+                    colors_map.append(colors['danger'])
+                elif status == 'Напружена':
+                    colors_map.append(colors['warning'])
+                else:
+                    colors_map.append(colors['success'])
+            except Exception as e:
+                print(f"Помилка обробки даних ситуації для карти: {e}, Дані: {situation}")
+                continue
+
+        if lats:
+             fig.add_trace(go.Scattergeo(
+                lon=lons,
+                lat=lats,
+                text=texts,
+                mode='markers',
+                marker=dict(
+                    color=colors_map,
+                    size=10,
+                    opacity=0.8,
+                    line=dict(width=1, color='rgba(68, 68, 68, 0)')
+                ),
+                name='Ситуації'
+            ))
+
+    # Налаштування вигляду карти
     fig.update_layout(
-        title={
-            'text': 'Карта оперативної обстановки',
-            'y': 0.95,
-            'x': 0.5,
-            'xanchor': 'center',
-            'yanchor': 'top',
-            'font': {'size': 20, 'color': colors['text']}
-        },
-        margin={"r":0, "t":30, "l":0, "b":0},
-        height=500,
+        title='Оперативна карта України',
+        geo=dict(
+            scope='europe',
+            center=dict(lon=31, lat=48.5), # Центр України
+            projection_scale=5, # Масштаб
+            landcolor='rgb(217, 217, 217)',
+            subunitcolor='rgb(255, 255, 255)',
+            bgcolor='rgba(0,0,0,0)',
+            lataxis_range=[44, 53], # Обмежуємо широту
+            lonaxis_range=[22, 41]  # Обмежуємо довготу
+        ),
+        margin={"r":0,"t":40,"l":0,"b":0},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        geo=dict(
-            bgcolor='rgba(0,0,0,0)'
-        )
+        font_color=colors['text']
     )
-    
     return fig
 
 def create_threat_analysis():
@@ -510,8 +474,8 @@ def create_incidents_chart():
     
     return fig
 
-# Макет додатку
-app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight': '100vh'}, children=[
+# Макет додатку Dash
+app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': colors['text'], 'padding': '20px'}, children=[
     # Заголовок
     html.Div(className="container-fluid", children=[
         html.Div(className="row mb-4", children=[
@@ -538,7 +502,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         html.P("Загальна кількість підрозділів НГУ", className="card-text text-muted")
                     ])
                 ])
-            ]),
+            ]), # <<< Додано кому між елементами другого ряду
             
             # Кількість ресурсів
             html.Div(className="col-md-6 col-lg-3", children=[
@@ -553,7 +517,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         html.P("Доступні ресурси в системі", className="card-text text-muted")
                     ])
                 ])
-            ]),
+            ]), # <<< Додано кому між елементами другого ряду
             
             # Кількість інцидентів
             html.Div(className="col-md-6 col-lg-3", children=[
@@ -568,7 +532,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         html.P("Зареєстровані інциденти за 30 днів", className="card-text text-muted")
                     ])
                 ])
-            ]),
+            ]), # <<< Додано кому між елементами другого ряду
             
             # Критичні ситуації
             html.Div(className="col-md-6 col-lg-3", children=[
@@ -583,7 +547,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         html.P("Активні критичні ситуації", className="card-text text-muted")
                     ])
                 ])
-            ])
+            ]), # <<< Додано кому між елементами другого ряду
         ])
     ]),
     
@@ -602,8 +566,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         dcc.Graph(id="ukraine-map", figure=create_ukraine_map(), config={'displayModeBar': False})
                     ])
                 ])
-            ]),
-            
+            ]), # <<< Додано кому між елементами другого ряду, # <<< Виправлено: додано кому
             # Аналіз загроз
             html.Div(className="col-lg-4", children=[
                 html.Div(className="card h-100 animate__animated animate__fadeIn", 
@@ -615,9 +578,9 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         dcc.Graph(id="threat-analysis", figure=create_threat_analysis(), config={'displayModeBar': False})
                     ])
                 ])
-            ])
-        ]),
-        
+            ]), # <<< Додано кому між елементами другого ряду
+        ]), # <<< END OF FIRST ROW OF GRAPHS,
+
         # Другий ряд графіків
         html.Div(className="row g-4 mb-4", children=[
             # Управління ресурсами
@@ -637,7 +600,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         ])
                     ])
                 ])
-            ]),
+            ]), # <<< Додано кому між елементами другого ряду
             
             # Інциденти
             html.Div(className="col-lg-6", children=[
@@ -663,8 +626,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         ])
                     ])
                 ])
-            ])
-        ]),
+            ]), # <<< Додано кому між елементами другого ряду
+        ])
         
         # Третій ряд - AI прогнози
         html.Div(className="row g-4 mb-4", children=[
@@ -679,9 +642,9 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'minHeight
                         html.Div(className="row", id="ai-predictions-container")
                     ])
                 ])
-            ])
+            ]), # <<< Додано кому між елементами другого ряду
         ])
-    ]),
+    ])
     
     # Інтервал для автоматичного оновлення даних
     dcc.Interval(

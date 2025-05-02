@@ -7,7 +7,7 @@ from flask import Flask
 from api import app as api_app
 from dashboard import dashboard
 from dashboard import improved_dashboard
-from dashboard.improved_dashboard_routes import register_dashapp
+from dashboard.improved_dashboard_routes import init_dash
 from database.models import Base
 from sqlalchemy import create_engine
 from config.config import DB_URL, SERVER_CONFIG
@@ -50,13 +50,16 @@ def main():
     # Передаємо параметр disable_ml у функцію create_app
     app = create_app(disable_ml=args.disable_ml)
     
-    # Інтеграція Dash-додатку з Flask
+    # Інтеграція Dash-додатку з Flask за допомогою init_app
+    print("Початок інтеграції Dash...")
     try:
-        dispatcher = register_dashapp(app)
+        init_dash(app)
+        print("Інтеграція Dash успішна.")
     except Exception as e:
         print(f"Помилка при інтеграції Dash з Flask: {e}")
-        print("Запуск системи без інтеграції з Dash...")
-        dispatcher = app
+        print("Продовження запуску Flask без інтеграції Dash...")
+    
+    # dispatcher більше не потрібен, оскільки init_dash налаштовує маршрутизацію в app
     
     if len(sys.argv) > 1:
         if sys.argv[1] == 'init_db':
@@ -66,10 +69,26 @@ def main():
             seed_db()
             sys.exit(0)
     
-    # Використовуємо dispatcher замість app.run для інтеграції Dash з Flask
+    # Запускаємо Flask додаток (Dash інтегровано через init_dash)
+    print("Спроба запуску Flask сервера...")
     from werkzeug.serving import run_simple
-    run_simple(SERVER_CONFIG['host'], SERVER_CONFIG['port'], dispatcher, use_reloader=SERVER_CONFIG['debug'], use_debugger=SERVER_CONFIG['debug'])
-    print(f"Інформаційно-аналітична система Національної гвардії України запущена на http://{SERVER_CONFIG['host']}:{SERVER_CONFIG['port']}")
+    # Використовуємо app замість dispatcher
+    # Вимикаємо use_reloader, щоб уникнути проблем з ініціалізацією під час перезапуску
+    host = SERVER_CONFIG['host']
+    port = SERVER_CONFIG['port']
+    debug = SERVER_CONFIG['debug']
+    print(f"Намагаюся запустити сервер на {host}:{port} з debug={debug}...")
+    try:
+        print("Перед викликом run_simple...")
+        run_simple(host, port, app, use_reloader=False, use_debugger=debug)
+        # Цей рядок, ймовірно, не буде виконано, оскільки run_simple блокує
+        print(f"Інформаційно-аналітична система Національної гвардії України запущена на http://{host}:{port}")
+    except OSError as e:
+        print(f"Помилка OSError під час запуску run_simple (можливо, порт зайнятий?): {e}")
+        raise
+    except Exception as e:
+        print(f"Загальна помилка під час запуску run_simple: {e}")
+        raise # Перевикидаємо помилку для кращої діагностики
 
 if __name__ == '__main__':
     main()

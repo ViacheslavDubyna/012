@@ -18,30 +18,45 @@ def check_postgres_running():
     try:
         # Команда для перевірки статусу PostgreSQL
         if platform.system() == 'Windows':
-            # Використовуємо точне ім'я служби PostgreSQL
-            service_name = 'postgresql-x64-17' # Явно вказуємо ім'я служби
+            # Динамічний пошук служби PostgreSQL
+            service_name = find_postgres_service_name()
+            if not service_name:
+                print("Не вдалося автоматично визначити ім'я служби PostgreSQL.")
+                print("Перевірте, чи встановлено PostgreSQL та чи містить ім'я служби 'postgresql'.")
+                return False
+
             print(f"Перевірка статусу служби: {service_name}")
             cmd = ['sc', 'query', service_name]
             print(f"Виконання команди: {' '.join(cmd)}")
             try:
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='cp866') # Використовуємо text=True та кодування
+                # Використовуємо відповідне кодування для Windows (часто cp1251 або cp866)
+                # Спробуємо визначити системне кодування
+                import locale
+                encoding = locale.getpreferredencoding()
+                print(f"Використовується кодування: {encoding}")
+
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding=encoding, errors='replace')
                 stdout, stderr = process.communicate()
                 print(f"Вивід stdout:\n{stdout}")
                 if stderr:
                     print(f"Вивід stderr:\n{stderr}")
-                
+
                 # Перевіряємо стан служби
                 if process.returncode == 0 and stdout:
                     # Шукаємо рядок зі станом
-                    state_line = next((line for line in stdout.splitlines() if 'STATE' in line), None)
-                    if state_line and 'RUNNING' in state_line:
+                    state_line = next((line for line in stdout.splitlines() if 'STATE' in line.upper()), None)
+                    if state_line and 'RUNNING' in state_line.upper():
                         print(f"Служба {service_name} знайдена у стані RUNNING.")
                         return True
                     else:
                         print(f"Служба {service_name} не знайдена у стані RUNNING. Поточний стан: {state_line}")
                         return False
                 else:
-                    print(f"Помилка виконання команди 'sc query' або порожній вивід. Код повернення: {process.returncode}")
+                    # Код 1060 означає, що служба не існує
+                    if process.returncode == 1060 or (stderr and '1060' in stderr):
+                         print(f"Служба {service_name} не знайдена (код 1060). Можливо, PostgreSQL не встановлено або ім'я служби інше.")
+                    else:
+                        print(f"Помилка виконання команди 'sc query' або порожній вивід. Код повернення: {process.returncode}")
                     return False
             except FileNotFoundError:
                 print(f"Помилка: Команда 'sc' не знайдена. Переконайтеся, що ви запускаєте скрипт у Windows з відповідними правами.")
@@ -50,73 +65,127 @@ def check_postgres_running():
                 print(f"Неочікувана помилка під час виконання 'sc query': {query_err}")
                 return False
         else:
-            # Для Linux/Mac використовуємо systemctl або pg_isready
-            cmd = ['pg_isready']
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate()
-            print(f"Статус PostgreSQL: {'запущено' if process.returncode == 0 else 'не запущено'}")
-            return process.returncode == 0
+            # Для Linux/Mac використовуємо pg_isready (більш надійний)
+            try:
+                cmd = ['pg_isready', '-q', '-h', DB_CONFIG.get('host', 'localhost'), '-p', str(DB_CONFIG.get('port', '5432')), '-U', DB_CONFIG.get('user', 'postgres')]
+                print(f"Виконання команди: {' '.join(cmd)}")
+                # Не передаємо пароль через командний рядок з міркувань безпеки
+                # pg_isready зазвичай не потребує пароля для перевірки статусу
+                process = subprocess.run(cmd, timeout=5, check=True, capture_output=True, text=True)
+                print(f"pg_isready виконано успішно. Статус: запущено.")
+                return True
+            except FileNotFoundError:
+                print("Команда 'pg_isready' не знайдена. Переконайтесь, що клієнтські утиліти PostgreSQL встановлені та доступні в PATH.")
+                return False
+            except subprocess.TimeoutExpired:
+                print("Перевірка статусу PostgreSQL через pg_isready зайняла занадто багато часу.")
+                return False
+            except subprocess.CalledProcessError as pg_err:
+                print(f"pg_isready повернув помилку (код {pg_err.returncode}). Статус: не запущено або проблема з підключенням.")
+                print(f"Stderr: {pg_err.stderr}")
+                return False
+            except Exception as e:
+                print(f"Неочікувана помилка під час виконання pg_isready: {e}")
+                return False
     except Exception as e:
         import traceback
         print(f"ПОМИЛКА ПЕРЕВІРКИ СТАТУСУ: {e}\nТрасування стеку:\n{traceback.format_exc()}")
         return False
 
+def find_postgres_service_name():
+    """Знаходить ім'я служби PostgreSQL у Windows."""
+    if platform.system() != 'Windows':
+        return None
+
+    print("\n[DEBUG] Пошук імені служби PostgreSQL...")
+    try:
+        import locale
+        encoding = locale.getpreferredencoding()
+        cmd_find = ['sc', 'query', 'type=', 'service', 'state=', 'all', 'bufsize=', '8000'] # Збільшено буфер
+        process = subprocess.Popen(cmd_find, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding=encoding, errors='replace')
+        stdout, stderr = process.communicate()
+
+        if process.returncode != 0:
+            print(f"[DEBUG] Помилка виконання 'sc query': {stderr}")
+            return None
+
+        # print(f'[DEBUG] Raw SC output для пошуку служби:\n{stdout}') # Розкоментувати для детального логування
+
+        service_name = None
+        lines = stdout.splitlines()
+        for i, line in enumerate(lines):
+            # Шукаємо рядок з DISPLAY_NAME, що містить 'postgresql'
+            if 'DISPLAY_NAME' in line.upper() and 'postgresql' in line.lower():
+                # Шукаємо SERVICE_NAME у попередніх рядках
+                for j in range(max(0, i - 2), i):
+                    prev_line = lines[j]
+                    if 'SERVICE_NAME:' in prev_line.upper():
+                        try:
+                            found_name = prev_line.split(':', 1)[1].strip()
+                            # Додаткова перевірка, щоб уникнути служб типу pgAgent
+                            if 'postgresql' in found_name.lower() and 'agent' not in found_name.lower():
+                                service_name = found_name
+                                print(f"[DEBUG] Знайдено службу PostgreSQL: {service_name} (Display: {line.split(':', 1)[1].strip()})")
+                                break # Знайшли службу
+                        except IndexError:
+                            print(f"[DEBUG] Помилка парсингу SERVICE_NAME для рядка: {prev_line}")
+                            continue
+                if service_name:
+                    break # Знайшли, виходимо
+
+        if not service_name:
+            print("[DEBUG] Не вдалося знайти службу PostgreSQL за DISPLAY_NAME. Спробуйте перевірити 'services.msc'.")
+
+        return service_name
+
+    except Exception as e:
+        print(f"[DEBUG] Помилка під час пошуку імені служби: {e}")
+        return None
+
+
 def start_postgres():
     """Запуск PostgreSQL"""
     print("\n=== Спроба запуску PostgreSQL ===")
     try:
-        if platform.system() == 'Windows': # <-- Додано перевірку платформи
-            # Детальне логування пошуку служби
-            print('\n[DEBUG] Пошук служб PostgreSQL у виводі SC:')
-            cmd_find = ['sc', 'query', 'type=', 'service', 'state=', 'all']
-            process = subprocess.Popen(cmd_find, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, _ = process.communicate()
-            print(f'[DEBUG] Raw SC output:\n{stdout.decode("utf-8", errors="replace")}')
-            
-            service_name = None
-            lines = stdout.split(b'\r\n')
-            for i, line in enumerate(lines):
-                # Шукаємо рядок з DISPLAY_NAME, що містить 'postgresql'
-                # Важливо: Перевіряємо саме DISPLAY_NAME, бо SERVICE_NAME може бути різним (напр. postgresql-x64-14)
-                if b'DISPLAY_NAME' in line and b'postgresql' in line.lower():
-                    # Шукаємо SERVICE_NAME у попередніх рядках (зазвичай 1-2 рядки вище)
-                    for j in range(max(0, i - 2), i):
-                        prev_line = lines[j]
-                        if b'SERVICE_NAME:' in prev_line:
-                            try:
-                                service_name = prev_line.split(b':')[1].strip().decode('utf-8')
-                                print(f"[DEBUG] Знайдено службу PostgreSQL: {service_name} (Display: {line.split(b':')[1].strip().decode('utf-8', errors='replace')})")
-                                break # Знайшли службу, виходимо з внутрішнього циклу
-                            except (IndexError, UnicodeDecodeError) as e:
-                                print(f"[DEBUG] Помилка парсингу SERVICE_NAME: {e} для рядка: {prev_line}")
-                                continue
-                    if service_name: # Якщо знайшли ім'я, виходимо з основного циклу
-                        break
-
+        if platform.system() == 'Windows':
+            service_name = find_postgres_service_name()
             if not service_name:
-                print("✗ Служба PostgreSQL не знайдена. Переконайтесь, що:")
-                print("  1) PostgreSQL встановлено.")
-                print("  2) Служба PostgreSQL запущена або може бути запущена.")
-                print("  3) Ім'я служби містить 'postgresql' (перевірте через 'services.msc').")
-                print("\n[DEBUG] Повний вивід 'sc query':")
-                print(stdout.decode('utf-8', errors='replace'))
+                print("✗ Не вдалося автоматично визначити ім'я служби PostgreSQL для запуску.")
+                print("  Переконайтесь, що PostgreSQL встановлено та ім'я служби містить 'postgresql'.")
+                print("  Спробуйте запустити службу вручну через 'services.msc'.")
                 return False
-            
+
+            # Перевіряємо, чи служба вже запущена перед спробою старту
+            if check_postgres_running(): # Використовуємо оновлену функцію перевірки
+                 print(f"✓ Служба PostgreSQL '{service_name}' вже працює.")
+                 return True
+
             # Запускаємо знайдену службу
             cmd = ['sc', 'start', service_name]
             print(f"\n[DEBUG] Виконуємо команду: {' '.join(cmd)}")
             try:
+                import locale
+                encoding = locale.getpreferredencoding()
                 # Використовуємо check_output для кращої обробки помилок
-                output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True, errors='replace')
-                print(f"✓ Служба PostgreSQL '{service_name}' успішно запущена.")
+                output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True, encoding=encoding, errors='replace')
+                print(f"✓ Команда запуску служби PostgreSQL '{service_name}' виконана.")
                 print(f"[DEBUG] Вивід команди запуску:\n{output}")
-                time.sleep(3) # Даємо час службі стабілізуватися
-                return True
+                print("Очікування стабілізації служби...")
+                time.sleep(5) # Збільшено час очікування
+                # Повторна перевірка статусу після спроби запуску
+                if check_postgres_running():
+                    print(f"✓ Служба PostgreSQL '{service_name}' успішно запущена та перевірена.")
+                    return True
+                else:
+                    print(f"✗ Не вдалося підтвердити запуск служби '{service_name}' після команди start.")
+                    return False
             except subprocess.CalledProcessError as e:
                 # Перевіряємо, чи служба вже запущена (код помилки 1056)
-                if e.returncode == 1056 or 'already been started' in e.output.lower():
-                    print(f"✓ Служба PostgreSQL '{service_name}' вже працює.")
-                    time.sleep(1) # Невелика пауза
+                # Або якщо вивід містить повідомлення про вже запущений стан
+                already_running_indicators = ['1056', 'already been started', 'уже запущен']
+                if e.returncode == 1056 or any(indicator in e.output.lower() for indicator in already_running_indicators):
+                    print(f"✓ Служба PostgreSQL '{service_name}' вже працює (виявлено під час спроби запуску).")
+                    time.sleep(1)
                     return True
                 elif e.returncode == 5: # Access Denied
                     print(f"✗ Помилка доступу під час спроби запуску служби '{service_name}'.")
@@ -140,7 +209,7 @@ def start_postgres():
                 print(f"[DEBUG] Трасування стеку:\n{traceback.format_exc()}")
                 return False
 
-        elif platform.system() == 'Linux': # <-- Тепер це правильний elif
+        elif platform.system() == 'Linux':
             print("Спроба запуску PostgreSQL на Linux...")
             try:
                 # Спробуємо запустити через systemctl
@@ -199,15 +268,9 @@ def start_postgres():
         else:
             print(f"✗ Непідтримувана ОС: {platform.system()}")
             return False
-
-    # Цей except ловить помилки, що сталися *до* визначення платформи або *поза* логікою запуску для конкретної платформи
-    # (наприклад, помилка в самому subprocess.Popen для 'sc query' на Windows)
     except Exception as e:
         import traceback
-        # Визначаємо команду, якщо вона була визначена в блоці try
-        cmd_str = ' '.join(cmd) if 'cmd' in locals() else 'не визначена на цьому етапі'
-        print(f"КРИТИЧНА ПОМИЛКА на етапі ініціалізації запуску PostgreSQL: {e}")
-        print(f"Трасування стеку:\n{traceback.format_exc()}")
+        print(f"ПОМИЛКА ЗАПУСКУ POSTGRESQL: {e}\nТрасування стеку:\n{traceback.format_exc()}")
         return False
 
 def setup_postgres():

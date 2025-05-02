@@ -29,28 +29,16 @@ def index():
         return 'Шаблон не знайдено', 404
 
 # Функція для інтеграції Dash-додатку з Flask
-def register_dashapp(flask_app):
-    """Реєстрація Dash-додатку в Flask-додатку"""
-    # Налаштування Dash-додатку для роботи з Flask
-    dash_app.config.update({
-        'routes_pathname_prefix': '/dashboard/improved/',
-        'requests_pathname_prefix': '/dashboard/improved/',
-        'suppress_callback_exceptions': True,
-        'update_title': 'Завантаження...',
-        'external_scripts': [
-            'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js'
-        ]
-    })
+def init_dash(flask_app):
+    """Ініціалізація Dash-додатку в Flask-додатку за допомогою init_app"""
+    # Використовуємо init_app для правильної інтеграції
+    # Налаштування, такі як suppress_callback_exceptions, title, etc., 
+    # вже встановлені в конструкторі Dash у improved_dashboard_integration.py
+    dash_app.init_app(flask_app)
     
-    # Створюємо DispatcherMiddleware для маршрутизації запитів
-    dispatcher = DispatcherMiddleware(flask_app, {
-        '/dashboard/improved': dash_app.server
-    })
-    
-    return dispatcher
+    # Налаштування, які потрібно встановити після init_app (якщо є)
+    # dash_app.config.suppress_callback_exceptions = True # Вже встановлено
+    # dash_app.title = 'Інформаційно-аналітична система НГУ' # Вже встановлено
 
-# Функція для запуску сервера з інтегрованим Dash-додатком
-def run_server(flask_app, host='0.0.0.0', port=5000):
-    """Запуск сервера з інтегрованим Dash-додатком"""
-    dispatcher = register_dashapp(flask_app)
-    run_simple(host, port, dispatcher, use_reloader=True, use_debugger=True)
+    # Немає необхідності повертати dispatcher, init_app налаштовує маршрутизацію
+    # return flask_app # Повертаємо сам flask_app, оскільки Dash інтегровано
