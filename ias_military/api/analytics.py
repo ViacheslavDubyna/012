@@ -21,8 +21,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Імпортуємо моделі бази даних
 from database.models import OperationalSituation, Resource, ResourceAllocation, Incident, Decision, Prediction, NGUUnit
 
-# Конфігурація бази даних
-DB_URL = "postgresql://postgres:postgres@localhost:5432/ngu_ias"
+# Імпортуємо конфігурацію бази даних
+from config.config import DB_URL
 
 class NGUAnalytics:
     _instance = None
@@ -329,14 +329,15 @@ class NGUAnalytics:
         
         print(f"RMSE моделі прогнозування потреб у ресурсах: {rmse:.4f}")
         
-        # Зберігаємо модель
+        # Зберігаємо модель під двома назвами для сумісності з analytics_ai.py
         self.models['resource_need'] = model
+        self.models['resource_predictor'] = model  # Додаємо другу назву для сумісності
         
         return model, rmse
         
     def predict_resource_need(self, threat_level, region, location, status, unit_type, personnel_count, readiness_level=3, incident_types=None, avg_severity=0, total_casualties=0, property_damage_count=0):
         """Прогнозування потреб у ресурсах для підрозділів НГУ"""
-        if 'resource_need' not in self.models:
+        if 'resource_need' not in self.models and 'resource_predictor' not in self.models:
             self.train_resource_need_model()
         
         # Поточний час
@@ -510,23 +511,81 @@ class NGUAnalytics:
         if directory is None:
             directory = self.models_dir
             
-        # Імпортуємо шлях до директорії моделей з конфігурації, якщо можливо
+        # Отримуємо шлях до директорії моделей з конфігурації, якщо можливо
         try:
-            from config.config import MODELS_DIR
-            directory = MODELS_DIR
-        except ImportError:
-            pass
+            from config.config import MODELS_DIR, ANALYTICS_CONFIG
+            # Спочатку перевіряємо, чи є альтернативний шлях у конфігурації аналітики
+            if 'models_dir' in ANALYTICS_CONFIG:
+                directory = ANALYTICS_CONFIG['models_dir']
+                print(f"Використовуємо шлях до моделей з ANALYTICS_CONFIG: {directory}")
+            else:
+                directory = MODELS_DIR
+                print(f"Використовуємо стандартний шлях до моделей з конфігурації: {directory}")
+        except (ImportError, KeyError) as e:
+            print(f"Використовуємо стандартну директорію моделей: {directory}. Помилка: {e}")
+            
+        # Перевіряємо, чи є шлях абсолютним, якщо ні - перетворюємо його
+        if not os.path.isabs(directory):
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            directory = os.path.join(base_dir, directory)
+            print(f"Перетворено відносний шлях на абсолютний: {directory}")
             
         # Створюємо директорію, якщо вона не існує
-        os.makedirs(directory, exist_ok=True)
+        try:
+            os.makedirs(directory, exist_ok=True)
+            print(f"Директорія {directory} перевірена/створена успішно")
+        except Exception as e:
+            print(f"Помилка при створенні директорії {directory}: {e}")
+            return False
+        
+        # Зберігаємо шлях до директорії моделей для подальшого використання
+        self.models_dir = directory
         
         # Зберігаємо кожну модель
+        models_saved = 0
         for model_name, model in self.models.items():
+            # Пропускаємо дублікат моделі resource_predictor, якщо вона ідентична resource_need
+            if model_name == 'resource_predictor' and 'resource_need' in self.models and id(self.models['resource_predictor']) == id(self.models['resource_need']):
+                print(f"Модель {model_name} є дублікатом resource_need, використовуємо один файл")
+                continue
+                
             model_path = os.path.join(directory, f"{model_name}.joblib")
-            joblib.dump(model, model_path)
-            print(f"Модель {model_name} збережена у {model_path}")
+            try:
+                # Створюємо резервну копію існуючої моделі, якщо вона є
+                if os.path.exists(model_path):
+                    backup_path = os.path.join(directory, f"{model_name}.joblib.bak")
+                    try:
+                        import shutil
+                        shutil.copy2(model_path, backup_path)
+                        print(f"Створено резервну копію моделі {model_name}")
+                    except Exception as e:
+                        print(f"Не вдалося створити резервну копію моделі {model_name}: {e}")
+                
+                # Зберігаємо модель
+                joblib.dump(model, model_path)
+                print(f"Модель {model_name} збережена у {model_path}")
+                models_saved += 1
+                
+                # Якщо це модель resource_need, також зберігаємо її як resource_predictor для сумісності
+                if model_name == 'resource_need' and 'resource_predictor' not in self.models:
+                    predictor_path = os.path.join(directory, "resource_predictor.joblib")
+                    joblib.dump(model, predictor_path)
+                    print(f"Модель resource_need також збережена як resource_predictor для сумісності")
+                    models_saved += 1
+            except Exception as e:
+                print(f"Помилка збереження моделі {model_name}: {e}")
+                # Відновлюємо з резервної копії, якщо вона є
+                backup_path = os.path.join(directory, f"{model_name}.joblib.bak")
+                if os.path.exists(backup_path):
+                    try:
+                        import shutil
+                        shutil.copy2(backup_path, model_path)
+                        print(f"Відновлено модель {model_name} з резервної копії")
+                    except Exception as backup_error:
+                        print(f"Не вдалося відновити модель з резервної копії: {backup_error}")
         
-        return True
+        print(f"Збережено {models_saved} моделей")
+        return models_saved > 0
     
     def load_models(self, directory=None):
         """Завантаження моделей з диску"""
@@ -534,37 +593,220 @@ class NGUAnalytics:
         if directory is None:
             directory = self.models_dir
             
-        # Імпортуємо шлях до директорії моделей з конфігурації, якщо можливо
+        # Отримуємо шлях до директорії моделей з конфігурації
         try:
-            from config.config import MODELS_DIR
-            directory = MODELS_DIR
-        except ImportError:
-            pass
+            from config.config import MODELS_DIR, ANALYTICS_CONFIG
+            # Спочатку перевіряємо, чи є альтернативний шлях у конфігурації аналітики
+            if 'models_dir' in ANALYTICS_CONFIG:
+                directory = ANALYTICS_CONFIG['models_dir']
+                print(f"Використовуємо шлях до моделей з ANALYTICS_CONFIG: {directory}")
+            else:
+                directory = MODELS_DIR
+                print(f"Використовуємо стандартний шлях до моделей з конфігурації: {directory}")
+        except (ImportError, KeyError) as e:
+            print(f"Використовуємо стандартну директорію моделей: {directory}. Помилка: {e}")
             
-        # Перевіряємо, чи існує директорія
+        # Перевіряємо, чи є шлях абсолютним, якщо ні - перетворюємо його
+        if not os.path.isabs(directory):
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            directory = os.path.join(base_dir, directory)
+            print(f"Перетворено відносний шлях на абсолютний: {directory}")
+            
+        # Перевіряємо, чи існує директорія, і створюємо її за потреби
         if not os.path.exists(directory):
-            print(f"Директорія {directory} не існує")
+            print(f"Директорія {directory} не існує. Спроба створити...")
+            try:
+                os.makedirs(directory, exist_ok=True)
+                print(f"Директорія {directory} успішно створена")
+            except Exception as e:
+                print(f"Не вдалося створити директорію {directory}: {e}")
+                self.initialize_empty_models()
+                return False
+        
+        # Перевіряємо, чи є файли моделей у директорії
+        try:
+            model_files = [f for f in os.listdir(directory) if f.endswith('.joblib')]
+            if not model_files:
+                print(f"У директорії {directory} не знайдено файлів моделей (.joblib)")
+                print("Моделі будуть створені при першому використанні відповідних функції.")
+                self.initialize_empty_models()
+                return False
+        except Exception as e:
+            print(f"Помилка при скануванні директорії {directory}: {e}")
+            self.initialize_empty_models()
             return False
+        
+        # Зберігаємо шлях до директорії моделей для подальшого використання
+        self.models_dir = directory
         
         # Завантажуємо кожну модель
         models_loaded = 0
-        for model_file in os.listdir(directory):
-            if model_file.endswith('.joblib'):
-                model_name = os.path.splitext(model_file)[0]
-                model_path = os.path.join(directory, model_file)
-                try:
-                    self.models[model_name] = joblib.load(model_path)
-                    print(f"Модель {model_name} завантажена з {model_path}")
+        resource_model = None
+        
+        # Визначаємо стандартні моделі, які повинні бути завантажені
+        standard_models = {
+            'threat_predictor': 'Прогнозування рівня загрози',
+            'resource_predictor': 'Прогнозування потреб у ресурсах',
+            'incident_predictor': 'Прогнозування інцидентів',
+            'resource_need': 'Прогнозування потреб у ресурсах (альтернативна назва)',
+            'threat_prediction': 'Прогнозування рівня загрози (альтернативна назва)'
+        }
+        
+        # Перевіряємо наявність файлів моделей
+        model_files = {}
+        for model_name in standard_models.keys():
+            model_path = os.path.join(directory, f"{model_name}.joblib")
+            if os.path.exists(model_path):
+                model_files[model_name] = model_path
+            else:
+                print(f"Файл моделі {model_name}.joblib не знайдено в {directory}")
+        
+        # Спочатку перевіряємо, чи є файл resource_need.joblib
+        resource_need_path = os.path.join(directory, "resource_need.joblib")
+        resource_predictor_path = os.path.join(directory, "resource_predictor.joblib")
+        
+        # Завантажуємо resource_need, якщо він існує
+        if os.path.exists(resource_need_path):
+            try:
+                resource_model = joblib.load(resource_need_path)
+                self.models['resource_need'] = resource_model
+                print(f"Модель resource_need завантажена з {resource_need_path}")
+                models_loaded += 1
+            except Exception as e:
+                print(f"Помилка завантаження моделі resource_need: {e}")
+                print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
+        
+        # Завантажуємо resource_predictor, якщо він існує
+        if os.path.exists(resource_predictor_path):
+            try:
+                # Перевіряємо, чи це не той самий файл, що й resource_need (для уникнення дублювання)
+                if resource_model is not None and os.path.exists(resource_need_path):
+                    try:
+                        if os.path.samefile(resource_need_path, resource_predictor_path):
+                            self.models['resource_predictor'] = resource_model
+                            print(f"Модель resource_predictor є тим самим файлом, що й resource_need")
+                        else:
+                            # Завантажуємо окрему модель resource_predictor
+                            resource_predictor_model = joblib.load(resource_predictor_path)
+                            self.models['resource_predictor'] = resource_predictor_model
+                            print(f"Модель resource_predictor завантажена з {resource_predictor_path}")
+                            models_loaded += 1
+                    except OSError:
+                        # Якщо не вдалося порівняти файли, завантажуємо окремо
+                        resource_predictor_model = joblib.load(resource_predictor_path)
+                        self.models['resource_predictor'] = resource_predictor_model
+                        print(f"Модель resource_predictor завантажена з {resource_predictor_path}")
+                        models_loaded += 1
+                else:
+                    # Завантажуємо окрему модель resource_predictor
+                    resource_predictor_model = joblib.load(resource_predictor_path)
+                    self.models['resource_predictor'] = resource_predictor_model
+                    print(f"Модель resource_predictor завантажена з {resource_predictor_path}")
                     models_loaded += 1
-                except Exception as e:
-                    print(f"Помилка завантаження моделі {model_name}: {e}")
+                    
+                # Якщо resource_need не був завантажений, використовуємо resource_predictor для сумісності
+                if resource_model is None:
+                    self.models['resource_need'] = self.models['resource_predictor']
+                    print(f"Використовуємо resource_predictor як resource_need для сумісності")
+            except Exception as e:
+                print(f"Помилка завантаження моделі resource_predictor: {e}")
+                print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
+                # Використовуємо resource_need як запасний варіант, якщо він був завантажений
+                if resource_model is not None:
+                    self.models['resource_predictor'] = resource_model
+                    print(f"Використовуємо resource_need як resource_predictor для сумісності")
+        elif resource_model is not None:
+            # Якщо resource_predictor не існує, але resource_need був завантажений, використовуємо його
+            self.models['resource_predictor'] = resource_model
+            print(f"Використовуємо resource_need як resource_predictor для сумісності")
+        
+        # Завантажуємо threat_predictor, якщо він існує
+        threat_predictor_path = os.path.join(directory, "threat_predictor.joblib")
+        if os.path.exists(threat_predictor_path):
+            try:
+                self.models['threat_predictor'] = joblib.load(threat_predictor_path)
+                print(f"Модель threat_predictor завантажена з {threat_predictor_path}")
+                models_loaded += 1
+            except Exception as e:
+                print(f"Помилка завантаження моделі threat_predictor: {e}")
+                print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
+        
+        # Завантажуємо incident_predictor, якщо він існує
+        incident_predictor_path = os.path.join(directory, "incident_predictor.joblib")
+        if os.path.exists(incident_predictor_path):
+            try:
+                self.models['incident_predictor'] = joblib.load(incident_predictor_path)
+                print(f"Модель incident_predictor завантажена з {incident_predictor_path}")
+                models_loaded += 1
+            except Exception as e:
+                print(f"Помилка завантаження моделі incident_predictor: {e}")
+                print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
+        
+        # Завантажуємо інші моделі, які не були завантажені вище
+        try:
+            for model_file in os.listdir(directory):
+                if model_file.endswith('.joblib'):
+                    model_name = os.path.splitext(model_file)[0]
+                    # Пропускаємо вже завантажені моделі
+                    if model_name in self.models or model_name in ['resource_need', 'resource_predictor', 'threat_predictor', 'incident_predictor']:
+                        continue
+                        
+                    model_path = os.path.join(directory, model_file)
+                    try:
+                        self.models[model_name] = joblib.load(model_path)
+                        print(f"Модель {model_name} завантажена з {model_path}")
+                        models_loaded += 1
+                    except Exception as e:
+                        print(f"Помилка завантаження моделі {model_name}: {e}")
+                        print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
+        except Exception as e:
+            print(f"Помилка при скануванні директорії моделей: {e}")
+        
+        # Перевіряємо, чи всі стандартні моделі завантажені
+        missing_models = [name for name in standard_models.keys() if name not in self.models and name != 'resource_need']
+        if missing_models:
+            print(f"Увага: Не знайдено наступні стандартні моделі: {', '.join(missing_models)}")
+            print("Система може працювати некоректно без цих моделей.")
+            print("Рекомендується запустити навчання моделей через відповідні функції.")
+        
+        # Додаємо альтернативну назву для threat_predictor, якщо вона завантажена
+        if 'threat_predictor' in self.models and 'threat_prediction' not in self.models:
+            self.models['threat_prediction'] = self.models['threat_predictor']
+            print("Додано альтернативну назву 'threat_prediction' для моделі 'threat_predictor'")
         
         if models_loaded > 0:
             print(f"Завантажено {models_loaded} моделей")
         else:
             print("Не знайдено жодної моделі для завантаження")
+            print("Моделі будуть створені при першому використанні відповідних функцій.")
+            self.initialize_empty_models()
             
         return models_loaded > 0
+
+    def initialize_empty_models(self):
+        """Ініціалізація порожніх моделей для уникнення помилок"""
+        print("Ініціалізація порожніх моделей для уникнення помилок...")
+        try:
+            # Створюємо прості моделі-заглушки
+            from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+            
+            # Модель для прогнозування загроз (класифікація)
+            self.models['threat_predictor'] = RandomForestClassifier(n_estimators=10)
+            self.models['threat_prediction'] = self.models['threat_predictor']  # Альтернативна назва
+            
+            # Моделі для прогнозування ресурсів (регресія)
+            resource_model = RandomForestRegressor(n_estimators=10)
+            self.models['resource_predictor'] = resource_model
+            self.models['resource_need'] = resource_model
+            
+            # Модель для прогнозування інцидентів (класифікація)
+            self.models['incident_predictor'] = RandomForestClassifier(n_estimators=10)
+            
+            print("Порожні моделі успішно ініціалізовані")
+            return True
+        except Exception as e:
+            print(f"Помилка при ініціалізації порожніх моделей: {e}")
+            return False
 
 # Приклад використання
 if __name__ == "__main__":

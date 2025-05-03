@@ -193,8 +193,15 @@ class AIPredictor:
         rmse = np.sqrt(mse)
         print(f"Модель прогнозування ресурсів - RMSE: {rmse:.4f}")
         
-        # Збереження моделі
-        return self.save_model('resource_predictor', model)
+        # Збереження моделі під обома назвами для сумісності
+        success = self.save_model('resource_predictor', model)
+        
+        # Також зберігаємо модель в analytics під назвою resource_need для сумісності
+        if hasattr(self.analytics, 'models'):
+            self.analytics.models['resource_need'] = model
+            print("Модель resource_predictor також збережена як resource_need в analytics для сумісності")
+            
+        return success
     
     def train_incident_predictor(self):
         """Навчання моделі для прогнозування ймовірності інцидентів"""
@@ -297,10 +304,17 @@ class AIPredictor:
     
     def predict_resource_needs(self, situation_id, resource_type, priority=3):
         """Прогнозування потреб у ресурсах"""
+        # Перевіряємо наявність моделі під обома можливими назвами
         if 'resource_predictor' not in self.models:
-            self.train_resource_predictor()
-            if 'resource_predictor' not in self.models:
-                return {'error': 'Не вдалося створити модель прогнозування ресурсів'}
+            # Перевіряємо, чи є модель під назвою resource_need в analytics
+            if hasattr(self.analytics, 'models') and 'resource_need' in self.analytics.models:
+                print("Використовуємо модель resource_need з analytics для сумісності")
+                self.models['resource_predictor'] = self.analytics.models['resource_need']
+            else:
+                # Якщо немає, навчаємо нову модель
+                self.train_resource_predictor()
+                if 'resource_predictor' not in self.models:
+                    return {'error': 'Не вдалося створити модель прогнозування ресурсів'}
         
         # Отримання даних про ситуацію
         situation = self.analytics.session.query(

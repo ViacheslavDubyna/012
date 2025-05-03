@@ -2,7 +2,7 @@
 # Інтеграція з API-ендпоіттами та покращена візуалізація
 
 import dash
-from dash import dcc, html
+from dash import dcc, html, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -48,6 +48,7 @@ colors = {
 }
 
 # Базовий URL для API-ендпоінтів
+# Використовуємо localhost для підключення до API, оскільки сервер запускається на 0.0.0.0:5000
 API_BASE_URL = "http://localhost:5000/api"
 
 # Функції для отримання даних з API
@@ -517,8 +518,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': c
                         html.P("Доступні ресурси в системі", className="card-text text-muted")
                     ])
                 ])
-            ]), # <<< Додано кому між елементами другого ряду
-            
+            ]), # <<< Додано кому
+
             # Кількість інцидентів
             html.Div(className="col-md-6 col-lg-3", children=[
                 html.Div(className="card h-100 animate__animated animate__fadeInUp", 

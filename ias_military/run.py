@@ -42,6 +42,20 @@ def seed_db():
     seed_database(DB_URL)
     print("База даних успішно заповнена тестовими даними.")
 
+def register_dashapp(flask_app):
+    """Функція для інтеграції Dash-додатку з Flask за допомогою init_app
+    Повертає dispatcher для використання з werkzeug.serving.run_simple"""
+    # Використовуємо init_app для правильної інтеграції
+    try:
+        init_dash(flask_app)
+        print("Інтеграція Dash успішна.")
+        # Повертаємо сам flask_app, оскільки Dash інтегровано через init_app
+        return flask_app
+    except Exception as e:
+        print(f"Помилка при інтеграції Dash з Flask: {e}")
+        print("Продовження запуску Flask без інтеграції Dash...")
+        return flask_app
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--disable-ml', action='store_true', help='Вимкнути ML-функціонал')
