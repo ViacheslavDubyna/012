@@ -13,9 +13,9 @@ from flask import Flask, render_template, redirect, url_for
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Імпортуємо модулі системи
-from ias_NGU.config.config import Config
-from ias_NGU.api.routes import api_bp
-from ias_NGU.dashboard.routes import dashboard_bp
+from config.config import Config
+from api.routes import api_bp
+from dashboard.routes import dashboard_bp
 
 def create_app(config=Config):
     """Створення та налаштування Flask додатку"""
@@ -41,9 +41,9 @@ def main():
     """Головна функція запуску системи"""
     app = create_app()
     print("Інформаційно-аналітична система НГУ запущена!")
-    print("Дашборд доступний за адресою: http://localhost:5000/dashboard")
-    print("API доступне за адресою: http://localhost:5000/api")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("Дашборд доступний за адресою: http://localhost:5100/dashboard")
+    print("API доступне за адресою: http://localhost:5100/api")
+    app.run(host='0.0.0.0', port=5100, debug=True)
 
 if __name__ == '__main__':
     main()

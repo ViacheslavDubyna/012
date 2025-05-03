@@ -8,10 +8,11 @@
 """
 
 # Імпортуємо модуль з ендпоінтами для даних про перетин кордону
-from ias_NGU.api import border_crossing
-
-from flask import jsonify, request, current_app
-from ias_NGU.api import api_bp
+from flask import Blueprint, jsonify, request
+-from ias_NGU.api import border_crossing
+-from ias_NGU.api import api_bp
++from . import border_crossing
++from . import api_bp
 
 
 @api_bp.route('/info', methods=['GET'])

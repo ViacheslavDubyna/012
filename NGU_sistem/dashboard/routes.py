@@ -8,7 +8,7 @@
 """
 
 from flask import render_template, request, redirect, url_for, flash, current_app
-from ias_NGU.dashboard import dashboard_bp
+from dashboard import dashboard_bp
 
 
 @dashboard_bp.route('/')

@@ -12,8 +12,6 @@ from flask import Blueprint
 api_bp = Blueprint('api', __name__)
 
 # Імпортуємо маршрути API після створення blueprint
-from ias_NGU.api.routes import *
-# Явно імпортуємо модуль з ендпоінтами для даних про перетин кордону
-from ias_NGU.api.border_crossing import *
-# Імпортуємо модуль з ендпоінтами для прогнозів перетину кордону
-from ias_NGU.api.predictions import *
+from .routes import *
+from .border_crossing import *
+from .predictions import *

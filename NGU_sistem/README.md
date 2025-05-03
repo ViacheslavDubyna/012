@@ -14,10 +14,10 @@
 python run.py
 ```
 
-Після запуску система буде доступна за адресою: http://localhost:5000
+Після запуску система буде доступна за адресою: http://localhost:5100
 
-- Дашборд: http://localhost:5000/dashboard
-- API: http://localhost:5000/api
+- Дашборд: http://localhost:5100/dashboard
+- API: http://localhost:5100/api
 
 ## Функціональність системи
 

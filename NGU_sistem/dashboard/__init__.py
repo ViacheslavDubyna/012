@@ -12,4 +12,4 @@ from flask import Blueprint
 dashboard_bp = Blueprint('dashboard', __name__)
 
 # Імпортуємо маршрути дашборду після створення blueprint
-from ias_NGU.dashboard.routes import *
+from .routes import *

@@ -142,7 +142,9 @@ def get_ai_predictions():
     return []
 
 # Функції для створення графіків
-def create_ukraine_map(map_data):
+def create_ukraine_map(map_data=None):
+    if map_data is None:
+        map_data = get_map_data() # Отримуємо дані, якщо вони не передані
     # Створюємо базову карту
     fig = go.Figure()
 
@@ -188,7 +190,14 @@ def create_ukraine_map(map_data):
 
     # Налаштування вигляду карти
     fig.update_layout(
-        title='Оперативна карта України',
+        title={
+            'text': 'Оперативна карта України',
+            'y':0.95,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top',
+            'font': {'size': 18, 'color': colors['text']}
+        },
         geo=dict(
             scope='europe',
             center=dict(lon=31, lat=48.5), # Центр України
@@ -199,7 +208,7 @@ def create_ukraine_map(map_data):
             lataxis_range=[44, 53], # Обмежуємо широту
             lonaxis_range=[22, 41]  # Обмежуємо довготу
         ),
-        margin={"r":0,"t":40,"l":0,"b":0},
+        margin={"r":5,"t":50,"l":5,"b":5},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font_color=colors['text']
@@ -207,6 +216,28 @@ def create_ukraine_map(map_data):
     return fig
 
 def create_threat_analysis():
+    # Отримуємо дані про рівень загрози
+    threat_data = get_threat_level_history()
+
+    # Перевірка наявності даних
+    if not threat_data or not threat_data.get('dates') or not threat_data.get('threat_levels'):
+        # Повертаємо порожній графік або повідомлення
+        fig = go.Figure()
+        fig.update_layout(
+            title='Динаміка рівня загрози',
+            xaxis={'visible': False},
+            yaxis={'visible': False},
+            annotations=[{
+                'text': 'Немає даних для відображення',
+                'xref': 'paper',
+                'yref': 'paper',
+                'showarrow': False,
+                'font': {'size': 16, 'color': colors['text']}
+            }],
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
+        )
+        return fig
     # Отримуємо дані про рівень загрози
     threat_data = get_threat_level_history()
     
@@ -292,7 +323,7 @@ def create_threat_analysis():
             'x': 0.5,
             'xanchor': 'center',
             'yanchor': 'top',
-            'font': {'size': 20, 'color': colors['text']}
+            'font': {'size': 18, 'color': colors['text']}
         },
         xaxis=dict(
             title='Дата',
@@ -316,6 +347,27 @@ def create_threat_analysis():
     return fig
 
 def create_resource_management():
+    # Отримуємо дані про ресурси
+    resource_data = get_resources_distribution()
+
+    # Перевірка наявності даних
+    if not resource_data or not resource_data.get('by_type'):
+        fig = go.Figure()
+        fig.update_layout(
+            title='Розподіл ресурсів за типами',
+            xaxis={'visible': False},
+            yaxis={'visible': False},
+            annotations=[{
+                'text': 'Немає даних для відображення',
+                'xref': 'paper',
+                'yref': 'paper',
+                'showarrow': False,
+                'font': {'size': 16, 'color': colors['text']}
+            }],
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
+        )
+        return fig
     # Отримуємо дані про ресурси
     resource_data = get_resources_distribution()
     
@@ -346,7 +398,7 @@ def create_resource_management():
             'x': 0.5,
             'xanchor': 'center',
             'yanchor': 'top',
-            'font': {'size': 20, 'color': colors['text']}
+            'font': {'size': 18, 'color': colors['text']}
         },
         xaxis=dict(
             title='Тип ресурсу',
@@ -365,6 +417,27 @@ def create_resource_management():
     return fig
 
 def create_resource_status_chart():
+    # Отримуємо дані про ресурси
+    resource_data = get_resources_distribution()
+
+    # Перевірка наявності даних
+    if not resource_data or not resource_data.get('by_status'):
+        fig = go.Figure()
+        fig.update_layout(
+            title='Статус ресурсів',
+            xaxis={'visible': False},
+            yaxis={'visible': False},
+            annotations=[{
+                'text': 'Немає даних для відображення',
+                'xref': 'paper',
+                'yref': 'paper',
+                'showarrow': False,
+                'font': {'size': 16, 'color': colors['text']}
+            }],
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
+        )
+        return fig
     # Отримуємо дані про ресурси
     resource_data = get_resources_distribution()
     
@@ -403,7 +476,7 @@ def create_resource_status_chart():
             'x': 0.5,
             'xanchor': 'center',
             'yanchor': 'top',
-            'font': {'size': 20, 'color': colors['text']}
+            'font': {'size': 18, 'color': colors['text']}
         },
         margin=dict(l=20, r=20, t=50, b=20),
         paper_bgcolor='rgba(0,0,0,0)',
@@ -476,38 +549,38 @@ def create_incidents_chart():
     return fig
 
 # Макет додатку Dash
-app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': colors['text'], 'padding': '20px'}, children=[])
+app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': colors['text'], 'padding': '20px'}, children=[
     # Заголовок
-html.Div(className="container-fluid", children=[
+    html.Div(className="container-fluid", children=[
         html.Div(className="row mb-4", children=[
             html.Div(className="col-12", children=[
                 html.H1("ІНФОРМАЦІЙНО-АНАЛІТИЧНА СИСТЕМА НГУ", className="display-5 fw-bold text-center mt-4 animate__animated animate__fadeIn"),
-                html.P("Інтерактивний дашборд для моніторингу та управління ресурсами Національної гвардії України", 
+                html.P("Інтерактивний дашборд для моніторингу та управління ресурсами Національної гвардії України",
                        className="lead text-muted text-center animate__animated animate__fadeIn")
             ])
         ])
     ]),
-    
+
     # Статистика
-html.Div(className="container-fluid", children=[
+    html.Div(className="container-fluid", children=[
         html.Div(className="row g-4 mb-4", children=[
             # Кількість підрозділів
             html.Div(className="col-md-6 col-lg-3", children=[
-                html.Div(className="card h-100 animate__animated animate__fadeInUp", children=[
+                html.Div(className="card h-100 shadow-sm animate__animated animate__fadeInUp", children=[
                     html.Div(className="card-body text-center", children=[
                         html.Div(className="d-flex align-items-center justify-content-center mb-3", children=[
                             html.I(className="fas fa-users fa-3x text-primary me-3"),
                             html.H2(id="units-count", className="display-4 mb-0")
                         ]),
                         html.H3("Підрозділи", className="card-title h5 mb-2"),
-                        html.P("Загальна кількість підрозділів НГУ", className="card-text text-muted")
+                        html.P("Загальна кількість підрозділів НГУ", className="card-text text-muted small")
                     ])
                 ])
-            ]), # <<< Додано кому між елементами другого ряду
-            
+            ]),
+
             # Кількість ресурсів
             html.Div(className="col-md-6 col-lg-3", children=[
-                html.Div(className="card h-100 animate__animated animate__fadeInUp", 
+                html.Div(className="card h-100 shadow-sm animate__animated animate__fadeInUp",
                          style={"animation-delay": "0.1s"}, children=[
                     html.Div(className="card-body text-center", children=[
                         html.Div(className="d-flex align-items-center justify-content-center mb-3", children=[
@@ -515,14 +588,14 @@ html.Div(className="container-fluid", children=[
                             html.H2(id="resources-count", className="display-4 mb-0")
                         ]),
                         html.H3("Ресурси", className="card-title h5 mb-2"),
-                        html.P("Доступні ресурси в системі", className="card-text text-muted")
+                        html.P("Доступні ресурси в системі", className="card-text text-muted small")
                     ])
                 ])
-            ]), # <<< Додано кому
+            ]),
 
             # Кількість інцидентів
             html.Div(className="col-md-6 col-lg-3", children=[
-                html.Div(className="card h-100 animate__animated animate__fadeInUp", 
+                html.Div(className="card h-100 shadow-sm animate__animated animate__fadeInUp",
                          style={"animation-delay": "0.2s"}, children=[
                     html.Div(className="card-body text-center", children=[
                         html.Div(className="d-flex align-items-center justify-content-center mb-3", children=[
@@ -530,14 +603,14 @@ html.Div(className="container-fluid", children=[
                             html.H2(id="incidents-count", className="display-4 mb-0")
                         ]),
                         html.H3("Інциденти", className="card-title h5 mb-2"),
-                        html.P("Зареєстровані інциденти за 30 днів", className="card-text text-muted")
+                        html.P("Зареєстровані інциденти за 30 днів", className="card-text text-muted small")
                     ])
                 ])
-            ]), # <<< Додано кому між елементами другого ряду
-            
+            ]),
+
             # Критичні ситуації
             html.Div(className="col-md-6 col-lg-3", children=[
-                html.Div(className="card h-100 animate__animated animate__fadeInUp", 
+                html.Div(className="card h-100 shadow-sm animate__animated animate__fadeInUp",
                          style={"animation-delay": "0.3s"}, children=[
                     html.Div(className="card-body text-center", children=[
                         html.Div(className="d-flex align-items-center justify-content-center mb-3", children=[
@@ -545,116 +618,110 @@ html.Div(className="container-fluid", children=[
                             html.H2(id="critical-count", className="display-4 mb-0")
                         ]),
                         html.H3("Критичні ситуації", className="card-title h5 mb-2"),
-                        html.P("Активні критичні ситуації", className="card-text text-muted")
+                        html.P("Активні критичні ситуації", className="card-text text-muted small")
                     ])
                 ])
-            ]), # <<< Додано кому між елементами другого ряду
+            ]),
         ])
     ]),
-    
-    # Основні графіки
-layout = html.Div(className="container-fluid", children=[
-    html.Div(className="row g-4 mb-4", children=[
-        # Карта України
-        html.Div(className="col-lg-8", children=[
-            html.Div(className="card h-100 animate__animated animate__fadeIn", 
-                     style={"animation-delay": "0.4s"}, children=[
-                html.Div(className="card-header d-flex justify-content-between align-items-center", children=[
-                    html.H5("Карта оперативної обстановки", className="mb-0"),
-                    html.Button("Оновити", id="update-map", className="btn btn-sm btn-outline-primary")
-                ]),
-                html.Div(className="card-body p-0", children=[
-                    dcc.Graph(id="ukraine-map", figure=create_ukraine_map(), config={'displayModeBar': False})
-                ])
-            ])
-        ])
-    ])
-])
 
- # <<< Додано кому між елементами другого ряду, # <<< Виправлено: додано кому
+    # Основні графіки - Перший ряд
+    html.Div(className="container-fluid", children=[
+        html.Div(className="row g-4 mb-4", children=[
+            # Карта України
+            html.Div(className="col-lg-8", children=[
+                html.Div(className="card h-100 shadow-sm animate__animated animate__fadeIn",
+                         style={"animation-delay": "0.4s"}, children=[
+                    html.Div(className="card-header d-flex justify-content-between align-items-center bg-light", children=[
+                        html.H5("Карта оперативної обстановки", className="mb-0"),
+                        html.Button([html.I(className="fas fa-sync-alt me-1"), "Оновити"], id="update-map", className="btn btn-sm btn-outline-primary")
+                    ]),
+                    html.Div(className="card-body p-0", style={'height': '500px'}, children=[
+                        dcc.Loading(type="default", children=dcc.Graph(id="ukraine-map", config={'displayModeBar': False}, style={'height': '100%'}))
+                    ])
+                ])
+            ]),
             # Аналіз загроз
-html.Div(className="col-lg-4", children=[
-                html.Div(className="card h-100 animate__animated animate__fadeIn", 
+            html.Div(className="col-lg-4", children=[
+                html.Div(className="card h-100 shadow-sm animate__animated animate__fadeIn",
                          style={"animation-delay": "0.5s"}, children=[
-                    html.Div(className="card-header", children=[
+                    html.Div(className="card-header bg-light", children=[
                         html.H5("Аналіз загроз", className="mb-0")
                     ]),
-                    html.Div(className="card-body", children=[
-                        dcc.Graph(id="threat-analysis", figure=create_threat_analysis(), config={'displayModeBar': False})
-                    ])
+                    html.Div(className="card-body", style={'height': '500px'}, children=[
+                        dcc.Loading(type="default", children=dcc.Graph(id="threat-analysis", config={'displayModeBar': False}, style={'height': '100%'}))
+                     ])
                 ])
-            ]), # <<< Додано кому між елементами другого ряду
-# <<< END OF FIRST ROW OF GRAPHS,
+            ]),
+        ])
+    ]),
 
-        # Другий ряд графіків
-html.Div(className="row g-4 mb-4", children=[
+    # Основні графіки - Другий ряд
+    html.Div(className="container-fluid", children=[
+        html.Div(className="row g-4 mb-4", children=[
             # Управління ресурсами
             html.Div(className="col-lg-6", children=[
-                html.Div(className="card h-100 animate__animated animate__fadeIn", 
+                html.Div(className="card h-100 shadow-sm animate__animated animate__fadeIn",
                          style={"animation-delay": "0.6s"}, children=[
-                    html.Div(className="card-header d-flex justify-content-between align-items-center", children=[
+                    html.Div(className="card-header d-flex justify-content-between align-items-center bg-light", children=[
                         html.H5("Управління ресурсами", className="mb-0"),
-                        html.Div(className="btn-group", children=[
-                            html.Button("За типами", id="resource-type-btn", className="btn btn-sm btn-outline-primary active"),
-                            html.Button("За статусом", id="resource-status-btn", className="btn btn-sm btn-outline-primary")
+                        html.Div(className="btn-group btn-group-sm", role="group", children=[
+                            html.Button("За типами", id="resource-type-btn", n_clicks=0, className="btn btn-outline-primary active"),
+                            html.Button("За статусом", id="resource-status-btn", n_clicks=0, className="btn btn-outline-primary")
                         ])
                     ]),
-                    html.Div(className="card-body", children=[
-                        html.Div(id="resource-chart-container", children=[
-                            dcc.Graph(id="resource-chart", figure=create_resource_management(), config={'displayModeBar': False})
-                        ])
-                    ])
+                    html.Div(className="card-body", style={'height': '450px'}, children=[
+                         dcc.Loading(type="default", children=html.Div(id="resource-chart-container", children=[
+                            # Графік буде завантажено через колбек
+                            dcc.Graph(id="resource-chart", config={'displayModeBar': False}, style={'height': '100%'}) 
+                         ]))
+                     ])
                 ])
-            ]), # <<< Додано кому між елементами другого ряду
-            
+            ]),
+
             # Інциденти
             html.Div(className="col-lg-6", children=[
-                html.Div(className="card h-100 animate__animated animate__fadeIn", 
+                html.Div(className="card h-100 shadow-sm animate__animated animate__fadeIn",
                          style={"animation-delay": "0.7s"}, children=[
-                    html.Div(className="card-header", children=[
+                    html.Div(className="card-header bg-light", children=[
                         html.H5("Останні інциденти", className="mb-0")
                     ]),
-                    html.Div(className="card-body", children=[
-                        html.Div(id="incidents-table-container", style={"maxHeight": "400px", "overflow": "auto"}, children=[
-                            html.Table(className="table table-hover", children=[
-                                html.Thead(className="table-light", children=[
-                                    html.Tr(children=[
-                                        html.Th("Тип"),
-                                        html.Th("Локація"),
-                                        html.Th("Дата"),
-                                        html.Th("Статус"),
-                                        html.Th("Рівень")
-                                    ])
-                                ]),
-                                html.Tbody(id="incidents-table-body")
-                            ])
-                        ])
-                    ])
+                    html.Div(className="card-body p-0", style={'height': '450px'}, children=[
+                        dcc.Loading(type="default", children=html.Div(id="incidents-table-container", style={"height": "100%", "overflowY": "auto"}, children=[
+                            # Таблиця буде завантажена через колбек
+                            html.Div("Завантаження даних інцидентів...", className="text-center text-muted p-3") # Placeholder
+                         ]))
+                     ])
                 ])
-            ]), # <<< Додано кому між елементами другого ряду
+            ]),
         ])
-        
-        # Третій ряд - AI прогнози
-layout = html.Div([
-    html.Div(className="row g-4 mb-4", children=[
-        html.Div(className="col-12", children=[
-            html.Div(className="card animate__animated animate__fadeIn", 
-                     style={"animation-delay": "0.8s"}, children=[
-                html.Div(className="card-header d-flex justify-content-between align-items-center", children=[
-                    html.H5("Прогнози штучного інтелекту", className="mb-0"),
-                    html.Span(className="badge bg-primary", children=["AI"])
-                ]),
-                html.Div(className="card-body", children=[
-                    html.Div(className="row", id="ai-predictions-container")
+    ]),
+
+    # Третій ряд - AI прогнози
+    html.Div(className="container-fluid", children=[
+        html.Div(className="row g-4 mb-4", children=[
+            html.Div(className="col-12", children=[
+                html.Div(className="card shadow-sm animate__animated animate__fadeIn",
+                         style={"animation-delay": "0.8s"}, children=[
+                    html.Div(className="card-header d-flex justify-content-between align-items-center bg-light", children=[
+                        html.H5("Прогнози штучного інтелекту", className="mb-0"),
+                        html.Span(className="badge bg-primary rounded-pill", children=["AI"])
+                    ]),
+                    html.Div(className="card-body p-3", children=[
+                        # Картки прогнозів будуть завантажені через колбек
+                        dcc.Loading(type="default", children=html.Div(className="row", id="ai-predictions-container", children=[
+                             html.Div("Завантаження прогнозів AI...", className="text-center text-muted p-3") # Placeholder
+                        ]))
+                    ])
                 ])
             ])
         ])
     ]),
-    
+
     # Інтервал для автоматичного оновлення даних
     dcc.Interval(
         id='interval-component',
-        interval=60*1000,  # оновлення кожну хвилину
+        interval=60*1000,  # оновлення кожну хвилину (60000 ms)
         n_intervals=0
     )
 ])
@@ -684,6 +751,12 @@ def update_statistics(n):
     [Input("update-map", "n_clicks"), Input("interval-component", "n_intervals")]
 )
 def update_map(n_clicks, n_intervals):
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else 'interval-component'
+    # Оновлюємо карту при натисканні кнопки або за інтервалом
+    # (можна додати логіку, щоб не оновлювати за інтервалом, якщо щойно натиснули кнопку)
+    map_data = get_map_data()
+    return create_ukraine_map(map_data)
     """Оновлення карти"""
     return create_ukraine_map(get_map_data())
 
@@ -702,21 +775,36 @@ def update_threat_analysis(n):
 def update_resource_chart(type_clicks, status_clicks):
     """Перемикання між різними видами графіків ресурсів"""
     ctx = dash.callback_context
-    if not ctx.triggered:
-        # За замовчуванням показуємо розподіл за типами
-        return [dcc.Graph(id="resource-chart", figure=create_resource_management(), config={'displayModeBar': False})]
-    else:
-        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-        if button_id == "resource-status-btn":
-            return [dcc.Graph(id="resource-chart", figure=create_resource_status_chart(), config={'displayModeBar': False})]
-        else:
-            return [dcc.Graph(id="resource-chart", figure=create_resource_management(), config={'displayModeBar': False})]
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else 'resource-type-btn'
+
+    if triggered_id == "resource-status-btn":
+        return dcc.Graph(id="resource-chart", figure=create_resource_status_chart(), config={'displayModeBar': False}, style={'height': '100%'}) 
+    else: # За замовчуванням або якщо натиснуто type_btn
+        return dcc.Graph(id="resource-chart", figure=create_resource_management(), config={'displayModeBar': False}, style={'height': '100%'})
 
 @app.callback(
-    Output("incidents-table-body", "children"),
+    Output("incidents-table-container", "children"), # Update container instead of non-existent body
     [Input("interval-component", "n_intervals")]
 )
 def update_incidents_table(n):
+    """Оновлення таблиці інцидентів"""
+    incidents = get_recent_incidents()
+    if not incidents:
+        return html.Div("Немає даних про інциденти.", className="text-center text-muted p-3")
+
+    table_header = [
+        html.Thead(className="table-light sticky-top", children=[
+            html.Tr(children=[
+                html.Th("Тип/Підтип"),
+                html.Th("Локація"),
+                html.Th("Дата/Час"),
+                html.Th("Статус"),
+                html.Th("Рівень")
+            ])
+        ])
+    ]
+
+    rows = []
     """Оновлення таблиці інцидентів"""
     incidents = get_recent_incidents()
     rows = []
@@ -737,20 +825,28 @@ def update_incidents_table(n):
         
         # Додаємо рядок до таблиці
         rows.append(html.Tr(className=severity_class, children=[
-            html.Td(f"{incident['type']} - {incident['subtype']}"),
-            html.Td(incident['location']),
+            html.Td(f"{incident.get('type', 'N/A')} - {incident.get('subtype', 'N/A')}"),
+            html.Td(incident.get('location', 'N/A')),
             html.Td(formatted_date),
-            html.Td(incident['status']),
-            html.Td(incident['severity'])
+            html.Td(incident.get('status', 'N/A')),
+            html.Td(incident.get('severity', 'N/A'))
         ]))
-    
-    return rows
+
+    table_body = [html.Tbody(rows)]
+
+    return html.Table(className="table table-hover table-sm small", children=table_header + table_body)
 
 @app.callback(
     Output("ai-predictions-container", "children"),
     [Input("interval-component", "n_intervals")]
 )
 def update_ai_predictions(n):
+    """Оновлення прогнозів AI"""
+    predictions = get_ai_predictions()
+    if not predictions:
+        return html.Div("Немає доступних прогнозів AI.", className="text-center text-muted p-3")
+
+    prediction_cards = []
     """Оновлення прогнозів AI"""
     predictions = get_ai_predictions()
     prediction_cards = []
@@ -775,20 +871,20 @@ def update_ai_predictions(n):
             formatted_date = prediction['timestamp']
         
         # Створюємо картку прогнозу
-        prediction_cards.append(html.Div(className="col-md-4 mb-3", children=[
-            html.Div(className=f"card h-100 {card_class}", children=[
-                html.Div(className=f"card-header {header_class}", children=[
-                    html.H6(prediction['type'], className="mb-0")
+        prediction_cards.append(html.Div(className="col-lg-4 col-md-6 mb-4", children=[
+            html.Div(className=f"card h-100 shadow-sm {card_class}", children=[
+                html.Div(className=f"card-header {header_class} p-2", children=[
+                    html.H6(prediction.get('type', 'N/A'), className="mb-0 small fw-bold")
                 ]),
-                html.Div(className="card-body", children=[
-                    html.H5(prediction['region'], className="card-title"),
-                    html.P(prediction['description'], className="card-text"),
-                    html.Div(className="d-flex justify-content-between align-items-center", children=[
-                        html.Span(f"Значення: {prediction['value']}"),
-                        html.Span(f"Достовірність: {int(prediction['confidence']*100)}%")
+                html.Div(className="card-body p-3", children=[
+                    html.H5(prediction.get('region', 'N/A'), className="card-title h6"),
+                    html.P(prediction.get('description', 'N/A'), className="card-text small"),
+                    html.Div(className="d-flex justify-content-between align-items-center mt-2", children=[
+                        html.Span(f"Значення: {prediction.get('value', 'N/A')}", className="badge bg-light text-dark"),
+                        html.Span(f"Достовірність: {int(prediction.get('confidence', 0)*100)}%", className="badge bg-light text-dark")
                     ])
                 ]),
-                html.Div(className="card-footer text-muted", children=[
+                html.Div(className="card-footer text-muted small p-2", children=[
                     f"Оновлено: {formatted_date}"
                 ])
             ])
