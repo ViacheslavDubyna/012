@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-Маршрути API для інформаційно-аналітичної системи ДПСУ
+Маршрути API для інформаційно-аналітичної системи НГУ
 
 Цей модуль містить всі API-ендпоінти для доступу до даних та функціональності системи.
 """
 
 # Імпортуємо модуль з ендпоінтами для даних про перетин кордону
-from ias_DPSU.api import border_crossing
+from ias_NGU.api import border_crossing
 
 from flask import jsonify, request, current_app
-from ias_DPSU.api import api_bp
+from ias_NGU.api import api_bp
 
 
 @api_bp.route('/info', methods=['GET'])

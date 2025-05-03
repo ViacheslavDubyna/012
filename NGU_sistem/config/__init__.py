@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-Модуль конфігурації для інформаційно-аналітичної системи ДПСУ
+Модуль конфігурації для інформаційно-аналітичної системи НГУ
 """
 
-from ias_DPSU.config.config import Config, DevelopmentConfig, TestingConfig, ProductionConfig
+from ias_NGU.config.config import Config, DevelopmentConfig, TestingConfig, ProductionConfig
 
 __all__ = ['Config', 'DevelopmentConfig', 'TestingConfig', 'ProductionConfig']

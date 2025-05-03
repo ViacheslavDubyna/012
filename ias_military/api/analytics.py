@@ -166,7 +166,7 @@ class NGUAnalytics:
         final_features = []
         for feature in features:
             if feature not in df.columns:
-                print(f"Попередження: Ознака '{feature}' відсутня в підготовлених даних. Вона буде проігнорована.")
+                print(f"Попередження: Ознака '{feature}' відсутня в підготовлених даних. Вона буде проігнорована.")  # Виправлено завершення рядка
             else:
                 final_features.append(feature)
         
@@ -320,7 +320,7 @@ class NGUAnalytics:
         # Заповнюємо пропущені значення для числових стовпців (більш вибірково)
         numeric_cols_to_fill_zero = [
             'Порушення громадського порядку', 'Терористична загроза', 'Диверсія', 
-            'Масові заворушення', 'Блокування об'єктів', 'total_casualties', 
+            'Масові заворушення', 'Блокування обєктів', 'total_casualties', 
             'property_damage_count', 'avg_severity' # Заповнення 0 для avg_severity може бути дискусійним, але краще ніж NaN
         ]
         for col in numeric_cols_to_fill_zero:
@@ -342,7 +342,7 @@ class NGUAnalytics:
         final_features = []
         for feature in features:
             if feature not in df.columns:
-                print(f"Попередження: Ознака '{feature}' відсутня в підготовлених даних. Вона буде проігнорована.")
+                print(f"Попередження: Ознака '{feature}' відсутня в підготовлених даних. Вона буде проігнорована.")  # Виправлено завершення рядка
             else:
                 final_features.append(feature)
         
@@ -728,7 +728,7 @@ class NGUAnalytics:
                 self.initialize_empty_models()
                 return False
         
-        # Перевіряємо, чи є файли моделей у директорії
+        # Перевіряємо, чи існує файли моделей у директорії
         try:
             model_files = [f for f in os.listdir(directory) if f.endswith('.joblib')]
             if not model_files:
@@ -782,7 +782,7 @@ class NGUAnalytics:
                             content = f.read(100)  # Читаємо перші 100 символів
                             if '#' in content or 'заглушка' in content:
                                 print(f"Файл resource_need є заглушкою, буде створена нова модель при навчанні")
-                                continue
+                                return
                     except UnicodeDecodeError:
                         # Якщо не вдалося відкрити як текст, спробуємо як бінарний
                         pass
@@ -807,7 +807,7 @@ class NGUAnalytics:
                             content = f.read(100)  # Читаємо перші 100 символів
                             if '#' in content or 'заглушка' in content:
                                 print(f"Файл resource_predictor є заглушкою, буде створена нова модель при навчанні")
-                                continue
+                                return
                     except UnicodeDecodeError:
                         # Якщо не вдалося відкрити як текст, спробуємо як бінарний
                         pass
@@ -866,7 +866,7 @@ class NGUAnalytics:
                             content = f.read(100)  # Читаємо перші 100 символів
                             if '#' in content or 'заглушка' in content:
                                 print(f"Файл threat_predictor є заглушкою, буде створена нова модель при навчанні")
-                                continue
+                                return
                     except UnicodeDecodeError:
                         # Якщо не вдалося відкрити як текст, спробуємо як бінарний
                         pass
@@ -892,7 +892,7 @@ class NGUAnalytics:
                             content = f.read(100)  # Читаємо перші 100 символів
                             if '#' in content or 'заглушка' in content:
                                 print(f"Файл threat_prediction є заглушкою, буде створена нова модель при навчанні")
-                                continue
+                                return
                     except UnicodeDecodeError:
                         # Якщо не вдалося відкрити як текст, спробуємо як бінарний
                         pass
@@ -916,8 +916,8 @@ class NGUAnalytics:
                         with open(incident_predictor_path, 'r', encoding='utf-8', errors='ignore') as f:
                             content = f.read(100)  # Читаємо перші 100 символів
                             if '#' in content or 'заглушка' in content:
-                                print(f"Файл incident_predictor є заглушкою, буде створена нова модель при навчанні")
-                                continue
+                                print(f"Файл incident_predictор є заглушкою, буде створена нова модель при навчанні")
+                                return
                     except UnicodeDecodeError:
                         # Якщо не вдалося відкрити як текст, спробуємо як бінарний
                         pass

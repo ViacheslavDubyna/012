@@ -476,9 +476,9 @@ def create_incidents_chart():
     return fig
 
 # Макет додатку Dash
-app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': colors['text'], 'padding': '20px'}, children=[
+app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': colors['text'], 'padding': '20px'}, children=[])
     # Заголовок
-    html.Div(className="container-fluid", children=[
+html.Div(className="container-fluid", children=[
         html.Div(className="row mb-4", children=[
             html.Div(className="col-12", children=[
                 html.H1("ІНФОРМАЦІЙНО-АНАЛІТИЧНА СИСТЕМА НГУ", className="display-5 fw-bold text-center mt-4 animate__animated animate__fadeIn"),
@@ -489,7 +489,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': c
     ]),
     
     # Статистика
-    html.Div(className="container-fluid", children=[
+html.Div(className="container-fluid", children=[
         html.Div(className="row g-4 mb-4", children=[
             # Кількість підрозділів
             html.Div(className="col-md-6 col-lg-3", children=[
@@ -553,23 +553,27 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': c
     ]),
     
     # Основні графіки
-    html.Div(className="container-fluid", children=[
-        html.Div(className="row g-4 mb-4", children=[
-            # Карта України
-            html.Div(className="col-lg-8", children=[
-                html.Div(className="card h-100 animate__animated animate__fadeIn", 
-                         style={"animation-delay": "0.4s"}, children=[
-                    html.Div(className="card-header d-flex justify-content-between align-items-center", children=[
-                        html.H5("Карта оперативної обстановки", className="mb-0"),
-                        html.Button("Оновити", id="update-map", className="btn btn-sm btn-outline-primary")
-                    ]),
-                    html.Div(className="card-body p-0", children=[
-                        dcc.Graph(id="ukraine-map", figure=create_ukraine_map(), config={'displayModeBar': False})
-                    ])
+layout = html.Div(className="container-fluid", children=[
+    html.Div(className="row g-4 mb-4", children=[
+        # Карта України
+        html.Div(className="col-lg-8", children=[
+            html.Div(className="card h-100 animate__animated animate__fadeIn", 
+                     style={"animation-delay": "0.4s"}, children=[
+                html.Div(className="card-header d-flex justify-content-between align-items-center", children=[
+                    html.H5("Карта оперативної обстановки", className="mb-0"),
+                    html.Button("Оновити", id="update-map", className="btn btn-sm btn-outline-primary")
+                ]),
+                html.Div(className="card-body p-0", children=[
+                    dcc.Graph(id="ukraine-map", figure=create_ukraine_map(), config={'displayModeBar': False})
                 ])
-            ]), # <<< Додано кому між елементами другого ряду, # <<< Виправлено: додано кому
+            ])
+        ])
+    ])
+])
+
+ # <<< Додано кому між елементами другого ряду, # <<< Виправлено: додано кому
             # Аналіз загроз
-            html.Div(className="col-lg-4", children=[
+html.Div(className="col-lg-4", children=[
                 html.Div(className="card h-100 animate__animated animate__fadeIn", 
                          style={"animation-delay": "0.5s"}, children=[
                     html.Div(className="card-header", children=[
@@ -580,10 +584,10 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': c
                     ])
                 ])
             ]), # <<< Додано кому між елементами другого ряду
-        ]), # <<< END OF FIRST ROW OF GRAPHS,
+# <<< END OF FIRST ROW OF GRAPHS,
 
         # Другий ряд графіків
-        html.Div(className="row g-4 mb-4", children=[
+html.Div(className="row g-4 mb-4", children=[
             # Управління ресурсами
             html.Div(className="col-lg-6", children=[
                 html.Div(className="card h-100 animate__animated animate__fadeIn", 
@@ -631,21 +635,21 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': c
         ])
         
         # Третій ряд - AI прогнози
-        html.Div(className="row g-4 mb-4", children=[
-            html.Div(className="col-12", children=[
-                html.Div(className="card animate__animated animate__fadeIn", 
-                         style={"animation-delay": "0.8s"}, children=[
-                    html.Div(className="card-header d-flex justify-content-between align-items-center", children=[
-                        html.H5("Прогнози штучного інтелекту", className="mb-0"),
-                        html.Span(className="badge bg-primary", children=["AI"])
-                    ]),
-                    html.Div(className="card-body", children=[
-                        html.Div(className="row", id="ai-predictions-container")
-                    ])
+layout = html.Div([
+    html.Div(className="row g-4 mb-4", children=[
+        html.Div(className="col-12", children=[
+            html.Div(className="card animate__animated animate__fadeIn", 
+                     style={"animation-delay": "0.8s"}, children=[
+                html.Div(className="card-header d-flex justify-content-between align-items-center", children=[
+                    html.H5("Прогнози штучного інтелекту", className="mb-0"),
+                    html.Span(className="badge bg-primary", children=["AI"])
+                ]),
+                html.Div(className="card-body", children=[
+                    html.Div(className="row", id="ai-predictions-container")
                 ])
-            ]), # <<< Додано кому між елементами другого ряду
+            ])
         ])
-    ])
+    ]),
     
     # Інтервал для автоматичного оновлення даних
     dcc.Interval(
@@ -681,7 +685,7 @@ def update_statistics(n):
 )
 def update_map(n_clicks, n_intervals):
     """Оновлення карти"""
-    return create_ukraine_map()
+    return create_ukraine_map(get_map_data())
 
 @app.callback(
     Output("threat-analysis", "figure"),

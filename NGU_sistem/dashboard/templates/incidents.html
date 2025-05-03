@@ -10,9 +10,10 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">ДПСУ ІАС</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+-             <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">ДПСУ ІАС</a>
++             <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">НГУ ІАС</a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                  <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
@@ -39,8 +40,8 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-12">
-                <h1>Інциденти на кордоні</h1>
-                <p class="lead">Інформація про інциденти та порушення на державному кордоні.</p>
+                <h1>Інциденти</h1>
+                <p class="lead">Інформація про інциденти та порушення під час виконання службових обов'язків.</p>
             </div>
         </div>
 
@@ -52,26 +53,26 @@
                         <div class="list-group">
                             <a href="{{ url_for('dashboard.incident_details', incident_id=1) }}" class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">Спроба незаконного перетину кордону</h6>
+                                    <h6 class="mb-1">Порушення громадського порядку</h6>
                                     <small class="text-muted">3 години тому</small>
                                 </div>
-                                <p class="mb-1">Група з 5 осіб намагалася незаконно перетнути кордон в районі пункту пропуску "Шегині".</p>
+                                <p class="mb-1">Група з 5 осіб порушувала громадський порядок під час масового заходу в центрі міста.</p>
                                 <small class="text-danger">Високий пріоритет</small>
                             </a>
                             <a href="{{ url_for('dashboard.incident_details', incident_id=2) }}" class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">Виявлення контрабанди</h6>
+                                    <h6 class="mb-1">Виявлення зброї</h6>
                                     <small class="text-muted">6 годин тому</small>
                                 </div>
-                                <p class="mb-1">Виявлено спробу перевезення контрабандних товарів через пункт пропуску "Краковець".</p>
+                                <p class="mb-1">Виявлено спробу проносу забороненої зброї на територію об'єкту, що охороняється.</p>
                                 <small class="text-warning">Середній пріоритет</small>
                             </a>
                             <a href="{{ url_for('dashboard.incident_details', incident_id=3) }}" class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">Порушення правил перетину кордону</h6>
+                                    <h6 class="mb-1">Порушення режиму охорони</h6>
                                     <small class="text-muted">1 день тому</small>
                                 </div>
-                                <p class="mb-1">Громадянин намагався перетнути кордон за підробленими документами в пункті пропуску "Ягодин".</p>
+                                <p class="mb-1">Громадянин намагався проникнути на територію стратегічного об'єкту за підробленими документами.</p>
                                 <small class="text-warning">Середній пріоритет</small>
                             </a>
                         </div>
@@ -142,7 +143,7 @@
 
     <footer class="bg-light py-3 mt-5">
         <div class="container text-center">
-            <p>© 2023 Державна прикордонна служба України. Всі права захищені.</p>
+            <p>© 2023 Національна гвардія України. Всі права захищені.</p>
         </div>
     </footer>
 

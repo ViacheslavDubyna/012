@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Конфігураційний файл для інформаційно-аналітичної системи ДПСУ
+Конфігураційний файл для інформаційно-аналітичної системи НГУ
 """
 
 import os
@@ -14,7 +14,7 @@ load_dotenv()
 class Config:
     """Базовий клас конфігурації"""
     # Загальні налаштування
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'dpsu-ias-secret-key-change-in-production')
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'ngu-ias-secret-key-change-in-production')
     DEBUG = os.environ.get('DEBUG', 'True') == 'True'
     TESTING = False
     
@@ -23,7 +23,7 @@ class Config:
     DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres')
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
     DB_PORT = os.environ.get('DB_PORT', '5432')
-    DB_NAME = os.environ.get('DB_NAME', 'dpsu_ias')
+    DB_NAME = os.environ.get('DB_NAME', 'ngu_ias')
     
     SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -35,12 +35,12 @@ class Config:
     
     # Налаштування API
     API_VERSION = '1.0'
-    API_TITLE = 'ДПСУ ІАС API'
-    API_DESCRIPTION = 'API для інформаційно-аналітичної системи Державної прикордонної служби України'
+    API_TITLE = 'НГУ ІАС API'
+    API_DESCRIPTION = 'API для інформаційно-аналітичної системи Національної гвардії України'
     
     # Налаштування логування
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
-    LOG_FILE = os.path.join(BASE_DIR, 'logs', 'dpsu_ias.log')
+    LOG_FILE = os.path.join(BASE_DIR, 'logs', 'ngu_ias.log')
 
 class DevelopmentConfig(Config):
     """Конфігурація для розробки"""

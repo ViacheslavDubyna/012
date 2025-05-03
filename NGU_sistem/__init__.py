@@ -9,8 +9,8 @@
 """
 
 __version__ = '0.1.0'
-__author__ = 'ДПСУ ІТ Відділ'
+__author__ = 'НГУ ІТ Відділ'
 
 # Імпортуємо основні модулі для зручності використання
-from ias_DPSU.config.config import Config
-from ias_DPSU.run import create_app, main
+from ias_NGU.config.config import Config
+from ias_NGU.run import create_app, main
