@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">ДПСУ ІАС</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">Головна</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard.statistics') }}">Статистика</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard.analytics') }}">Аналітика</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard.predictions') }}">Прогнози</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('dashboard.incidents') }}">Інциденти</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1>Інциденти на кордоні</h1>
+                <p class="lead">Інформація про інциденти та порушення на державному кордоні.</p>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-8 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Останні інциденти</h5>
+                        <div class="list-group">
+                            <a href="{{ url_for('dashboard.incident_details', incident_id=1) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Спроба незаконного перетину кордону</h6>
+                                    <small class="text-muted">3 години тому</small>
+                                </div>
+                                <p class="mb-1">Група з 5 осіб намагалася незаконно перетнути кордон в районі пункту пропуску "Шегині".</p>
+                                <small class="text-danger">Високий пріоритет</small>
+                            </a>
+                            <a href="{{ url_for('dashboard.incident_details', incident_id=2) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Виявлення контрабанди</h6>
+                                    <small class="text-muted">6 годин тому</small>
+                                </div>
+                                <p class="mb-1">Виявлено спробу перевезення контрабандних товарів через пункт пропуску "Краковець".</p>
+                                <small class="text-warning">Середній пріоритет</small>
+                            </a>
+                            <a href="{{ url_for('dashboard.incident_details', incident_id=3) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Порушення правил перетину кордону</h6>
+                                    <small class="text-muted">1 день тому</small>
+                                </div>
+                                <p class="mb-1">Громадянин намагався перетнути кордон за підробленими документами в пункті пропуску "Ягодин".</p>
+                                <small class="text-warning">Середній пріоритет</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Статистика інцидентів</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Всього за сьогодні
+                                <span class="badge bg-primary rounded-pill">12</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Високий пріоритет
+                                <span class="badge bg-danger rounded-pill">3</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Середній пріоритет
+                                <span class="badge bg-warning rounded-pill">5</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Низький пріоритет
+                                <span class="badge bg-success rounded-pill">4</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Фільтр інцидентів</h5>
+                        <form>
+                            <div class="mb-3">
+                                <label for="priorityFilter" class="form-label">Пріоритет</label>
+                                <select class="form-select" id="priorityFilter">
+                                    <option value="all">Всі</option>
+                                    <option value="high">Високий</option>
+                                    <option value="medium">Середній</option>
+                                    <option value="low">Низький</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dateFilter" class="form-label">Дата</label>
+                                <input type="date" class="form-control" id="dateFilter">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Застосувати</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Карта інцидентів</h5>
+                        <div class="map-container" style="height: 400px;">
+                            <!-- Карта інцидентів буде завантажена через JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light py-3 mt-5">
+        <div class="container text-center">
+            <p>© 2023 Державна прикордонна служба України. Всі права захищені.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Підключення Leaflet CSS перед скриптами -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Підключення Leaflet JS перед нашими скриптами -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Підключення наших скриптів -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/incidents.js') }}"></script>
+    <script>
+        // Додаткова ініціалізація для гарантованого запуску карти
+        document.addEventListener('DOMContentLoaded', function() {
+            // Перевіряємо, чи завантажилась бібліотека Leaflet
+            if (typeof L !== 'undefined') {
+                // Ініціалізуємо карту інцидентів
+                initIncidentsMap();
+                // Ініціалізуємо фільтри
+                initIncidentsFilter();
+            } else {
+                console.error('Leaflet library not loaded properly');
+            }
+        });
+    </script>
+</body>
+</html>

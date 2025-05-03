@@ -28,6 +28,18 @@ class AIPredictor:
     
     def load_models(self):
         """Завантаження збережених моделей"""
+        # Перевіряємо, чи існує директорія з моделями
+        if not os.path.exists(MODELS_DIR):
+            print(f"Директорія моделей {MODELS_DIR} не існує. Спроба створити...")
+            try:
+                os.makedirs(MODELS_DIR, exist_ok=True)
+                print(f"Директорія {MODELS_DIR} успішно створена")
+            except Exception as e:
+                print(f"Не вдалося створити директорію {MODELS_DIR}: {e}")
+                print("Ініціалізуємо порожні моделі для уникнення помилок")
+                self.initialize_empty_models()
+                return
+        
         model_files = {
             'threat_predictor': os.path.join(MODELS_DIR, 'threat_predictor.joblib'),
             'resource_predictor': os.path.join(MODELS_DIR, 'resource_predictor.joblib'),

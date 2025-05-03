@@ -111,21 +111,46 @@ class NGUAnalytics:
         # Рахуємо кількість інцидентів з пошкодженням майна
         property_damage = incidents_df.groupby('situation_id')['property_damage'].sum().reset_index(name='property_damage_count')
         
-        # Об'єднуємо дані
-        df = situations_df.merge(incident_counts, left_on='id', right_on='situation_id', how='left')
-        df = df.merge(incident_severity, left_on='id', right_on='situation_id', how='left')
-        df = df.merge(casualties, left_on='id', right_on='situation_id', how='left')
-        df = df.merge(property_damage, left_on='id', right_on='situation_id', how='left')
+        # Об'єднуємо дані (більш надійно)
+        df = situations_df
+        if not incident_counts.empty:
+            df = df.merge(incident_counts.drop(columns=['situation_id'], errors='ignore'), on='id', how='left')
+        if not incident_severity.empty:
+            df = df.merge(incident_severity.drop(columns=['situation_id'], errors='ignore'), on='id', how='left')
+        if not casualties.empty:
+            df = df.merge(casualties.drop(columns=['situation_id'], errors='ignore'), on='id', how='left')
+        if not property_damage.empty:
+            df = df.merge(property_damage.drop(columns=['situation_id'], errors='ignore'), on='id', how='left')
+
+        # Переконуємося, що стовпці інцидентів існують після злиття
+        for incident_type in incident_types:
+            if incident_type not in df.columns:
+                df[incident_type] = 0
+        if 'avg_severity' not in df.columns: df['avg_severity'] = 0
+        if 'total_casualties' not in df.columns: df['total_casualties'] = 0
+        if 'property_damage_count' not in df.columns: df['property_damage_count'] = 0
         
-        # Заповнюємо пропущені значення
-        for col in df.columns:
-            if df[col].dtype in [np.float64, np.int64]:
-                df[col] = df[col].fillna(0)
+        # Заповнюємо пропущені значення (більш вибірково)
+        numeric_cols_to_fill_zero = [
+            'Порушення громадського порядку', 'Терористична загроза', 'Диверсія',
+            'Масові заворушення', 'Блокування об\'єктів', 'total_casualties',
+            'property_damage_count', 'avg_severity'
+        ]
+        for col in numeric_cols_to_fill_zero:
+            if col in df.columns and df[col].isnull().any():
+                 df[col] = df[col].fillna(0)
         
         # Додаємо ознаку готовності підрозділу
         units_df = pd.read_sql(self.session.query(NGUUnit).statement, self.engine)
-        df = df.merge(units_df[['id', 'readiness_level']], left_on='unit_id', right_on='id', how='left', suffixes=('', '_unit'))
-        df['readiness_level'] = df['readiness_level'].fillna(3)  # Середній рівень за замовчуванням
+        if not units_df.empty:
+            df = df.merge(units_df[['id', 'readiness_level']].rename(columns={'id': 'unit_record_id'}),
+                          left_on='unit_id', right_on='unit_record_id', how='left')
+            df = df.drop(columns=['unit_record_id'], errors='ignore') # Видаляємо тимчасовий стовпець
+
+        if 'readiness_level' in df.columns:
+            df['readiness_level'] = df['readiness_level'].fillna(3)  # Середній рівень за замовчуванням
+        else:
+            df['readiness_level'] = 3 # Якщо стовпця немає, створюємо зі значенням за замовчуванням
         
         # Створюємо цільову змінну (високий рівень загрози чи ні)
         df['high_threat'] = (df['threat_level'] >= 4).astype(int)
@@ -137,15 +162,20 @@ class NGUAnalytics:
             'avg_severity', 'total_casualties', 'property_damage_count', 'readiness_level', 'region', 'location', 'status'
         ]
         
-        # Перевіряємо наявність всіх стовпців
+        # Перевіряємо наявність всіх необхідних ознак перед використанням
+        final_features = []
         for feature in features:
             if feature not in df.columns:
-                if feature in incident_types:
-                    df[feature] = 0
-                else:
-                    print(f"Відсутня ознака: {feature}")
+                print(f"Попередження: Ознака '{feature}' відсутня в підготовлених даних. Вона буде проігнорована.")
+            else:
+                final_features.append(feature)
         
-        X = df[features]
+        # Переконуємося, що категоріальні ознаки мають правильний тип
+        for cat_feature in ['region', 'location', 'status', 'unit_type']:
+             if cat_feature in df.columns:
+                 df[cat_feature] = df[cat_feature].astype(str).fillna('Unknown') # Заповнюємо пропуски рядком
+
+        X = df[final_features] # Використовуємо тільки ті ознаки, що реально існують
         y = df['high_threat']
         
         return X, y
@@ -236,29 +266,69 @@ class NGUAnalytics:
         property_damage = incidents_df.groupby('situation_id')['property_damage'].sum().reset_index(name='property_damage_count')
         
         # Об'єднуємо дані про ситуації та інциденти
-        df = situations_df.merge(incident_counts, left_on='id', right_on='situation_id', how='left')
-        df = df.merge(incident_severity, left_on='id', right_on='situation_id', how='left')
-        df = df.merge(casualties, left_on='id', right_on='situation_id', how='left')
-        df = df.merge(property_damage, left_on='id', right_on='situation_id', how='left')
+        df = situations_df
+        if not incident_counts.empty:
+            df = df.merge(incident_counts.drop(columns=['situation_id'], errors='ignore'), left_on='id', right_on='situation_id', how='left')
+        if not incident_severity.empty:
+            df = df.merge(incident_severity.drop(columns=['situation_id'], errors='ignore'), left_on='id', right_on='situation_id', how='left')
+        if not casualties.empty:
+            df = df.merge(casualties.drop(columns=['situation_id'], errors='ignore'), left_on='id', right_on='situation_id', how='left')
+        if not property_damage.empty:
+            df = df.merge(property_damage.drop(columns=['situation_id'], errors='ignore'), left_on='id', right_on='situation_id', how='left')
+        
+        # Переконуємося, що стовпці інцидентів існують після злиття
+        for incident_type in incident_types:
+            if incident_type not in df.columns:
+                df[incident_type] = 0
+        if 'avg_severity' not in df.columns: df['avg_severity'] = 0
+        if 'total_casualties' not in df.columns: df['total_casualties'] = 0
+        if 'property_damage_count' not in df.columns: df['property_damage_count'] = 0
         
         # Додаємо дані про підрозділи
-        df = df.merge(units_df[['id', 'unit_type', 'personnel_count', 'readiness_level']], 
-                      left_on='unit_id', right_on='id', how='left', suffixes=('', '_unit'))
+        if not units_df.empty:
+            df = df.merge(units_df[['id', 'unit_type', 'personnel_count', 'readiness_level']].rename(columns={'id': 'unit_record_id'}), 
+                          left_on='unit_id', right_on='unit_record_id', how='left')
+            df = df.drop(columns=['unit_record_id'], errors='ignore') # Видаляємо тимчасовий стовпець
         
-        # Заповнюємо пропущені значення
-        df['readiness_level'] = df['readiness_level'].fillna(3)  # Середній рівень за замовчуванням
-        df['personnel_count'] = df['personnel_count'].fillna(df['personnel_count'].median())
-        df['unit_type'] = df['unit_type'].fillna('Оперативного призначення')  # Найпоширеніший тип за замовчуванням
+        # Заповнюємо пропущені значення для даних підрозділів
+        if 'readiness_level' in df.columns:
+            df['readiness_level'] = df['readiness_level'].fillna(3)  # Середній рівень за замовчуванням
+        else:
+            df['readiness_level'] = 3 # Якщо стовпця немає, створюємо зі значенням за замовчуванням
+            
+        if 'personnel_count' in df.columns:
+            median_personnel = df['personnel_count'].median()
+            df['personnel_count'] = df['personnel_count'].fillna(median_personnel if pd.notna(median_personnel) else 50) # Заповнюємо медіаною або типовим значенням
+        else:
+            df['personnel_count'] = 50 # Якщо стовпця немає
+            
+        if 'unit_type' in df.columns:
+            df['unit_type'] = df['unit_type'].fillna('Оперативного призначення')  # Найпоширеніший тип за замовчуванням
+        else:
+            df['unit_type'] = 'Оперативного призначення' # Якщо стовпця немає
         
         # Розраховуємо загальну кількість виділених ресурсів для кожної ситуації
-        total_resources = allocations_df.groupby('situation_id')['quantity_allocated'].sum().reset_index(name='total_resources')
-        df = df.merge(total_resources, left_on='id', right_on='situation_id', how='left')
-        df['total_resources'] = df['total_resources'].fillna(0)
+        if not allocations_df.empty:
+            total_resources = allocations_df.groupby('situation_id')['quantity_allocated'].sum().reset_index(name='total_resources')
+            df = df.merge(total_resources.drop(columns=['situation_id'], errors='ignore'), left_on='id', right_on='situation_id', how='left')
         
-        # Заповнюємо пропущені значення для числових стовпців
-        for col in df.columns:
-            if df[col].dtype in [np.float64, np.int64]:
+        if 'total_resources' not in df.columns:
+             df['total_resources'] = 0
+        else:
+             df['total_resources'] = df['total_resources'].fillna(0)
+
+        # Заповнюємо пропущені значення для числових стовпців (більш вибірково)
+        numeric_cols_to_fill_zero = [
+            'Порушення громадського порядку', 'Терористична загроза', 'Диверсія', 
+            'Масові заворушення', 'Блокування об'єктів', 'total_casualties', 
+            'property_damage_count', 'avg_severity' # Заповнення 0 для avg_severity може бути дискусійним, але краще ніж NaN
+        ]
+        for col in numeric_cols_to_fill_zero:
+            if col in df.columns and df[col].isnull().any():
                 df[col] = df[col].fillna(0)
+        
+        # Для readiness_level та personnel_count вже заповнено вище
+        # threat_level не повинен мати NaN, якщо дані з бази коректні
         
         # Вибираємо ознаки та цільову змінну
         features = [
@@ -268,13 +338,20 @@ class NGUAnalytics:
             'readiness_level', 'personnel_count', 'region', 'location', 'status', 'unit_type'
         ]
         
-        # Перевіряємо наявність всіх стовпців
+        # Перевіряємо наявність всіх необхідних ознак перед використанням
+        final_features = []
         for feature in features:
             if feature not in df.columns:
-                if feature in incident_types:
-                    df[feature] = 0
-                else:
-                    print(f"Відсутня ознака: {feature}")
+                print(f"Попередження: Ознака '{feature}' відсутня в підготовлених даних. Вона буде проігнорована.")
+            else:
+                final_features.append(feature)
+        
+        # Переконуємося, що категоріальні ознаки мають правильний тип
+        for cat_feature in ['region', 'location', 'status', 'unit_type']:
+             if cat_feature in df.columns:
+                 df[cat_feature] = df[cat_feature].astype(str).fillna('Unknown') # Заповнюємо пропуски рядком
+
+        X = df[final_features]
         
         X = df[features]
         y = df['total_resources']
@@ -427,19 +504,24 @@ class NGUAnalytics:
         # Рахуємо середню серйозність інцидентів за день
         daily_severity = incidents_df.groupby(['date', 'type'])['severity'].mean().reset_index(name='avg_severity')
         
-        # Об'єднуємо дані
-        trends_df = daily_incidents.merge(daily_severity, on=['date', 'type'])
+        # Об'єднуємо дані (використовуємо outer merge для врахування всіх дат/типів)
+        trends_df = pd.merge(daily_incidents, daily_severity, on=['date', 'type'], how='outer')
+        # Заповнюємо можливі NaN після outer merge
+        trends_df['count'] = trends_df['count'].fillna(0)
+        trends_df['avg_severity'] = trends_df['avg_severity'].fillna(0)
         
         # Аналізуємо тренди
         trends = {}
         for incident_type in trends_df['type'].unique():
             type_data = trends_df[trends_df['type'] == incident_type]
             
-            # Розраховуємо зміну кількості інцидентів
-            count_change = type_data['count'].pct_change().mean() * 100
-            
-            # Розраховуємо зміну серйозності інцидентів
-            severity_change = type_data['avg_severity'].pct_change().mean() * 100
+            # Розраховуємо зміну кількості інцидентів (з обробкою NaN/inf)
+            count_pct_change = type_data['count'].pct_change().replace([np.inf, -np.inf], np.nan).fillna(0)
+            count_change = count_pct_change.mean() * 100
+
+            # Розраховуємо зміну серйозності інцидентів (з обробкою NaN/inf)
+            severity_pct_change = type_data['avg_severity'].pct_change().replace([np.inf, -np.inf], np.nan).fillna(0)
+            severity_change = severity_pct_change.mean() * 100
             
             trends[incident_type] = {
                 'count_change': count_change,
@@ -493,10 +575,28 @@ class NGUAnalytics:
         # Розраховуємо ефективність за типами рішень
         for decision_type in df['decision_type'].unique():
             type_data = df[df['decision_type'] == decision_type]
+            avg_effectiveness = type_data['effectiveness_score'].mean()
+            count = len(type_data)
+            avg_implementation_time_minutes = None
+            
+            # Перевіряємо наявність та тип стовпців часу
+            if 'implementation_time' in type_data.columns and 'decision_time' in type_data.columns:
+                # Перетворюємо в datetime, ігноруючи помилки (залишить NaT)
+                impl_time = pd.to_datetime(type_data['implementation_time'], errors='coerce')
+                dec_time = pd.to_datetime(type_data['decision_time'], errors='coerce')
+                
+                # Розраховуємо різницю, ігноруючи NaT
+                time_diff = (impl_time - dec_time).dropna()
+                
+                if not time_diff.empty:
+                    avg_implementation_time_seconds = time_diff.mean().total_seconds()
+                    if avg_implementation_time_seconds >= 0: # Час реалізації не може бути від'ємним
+                       avg_implementation_time_minutes = avg_implementation_time_seconds / 60
+            
             effectiveness['by_decision_type'][decision_type] = {
-                'avg_effectiveness': type_data['effectiveness_score'].mean(),
-                'count': len(type_data),
-                'avg_implementation_time': (type_data['implementation_time'] - type_data['decision_time']).mean().total_seconds() / 60  # в хвилинах
+                'avg_effectiveness': avg_effectiveness if pd.notna(avg_effectiveness) else None,
+                'count': count,
+                'avg_implementation_time_minutes': avg_implementation_time_minutes
             }
         
         return {
@@ -536,6 +636,11 @@ class NGUAnalytics:
             print(f"Директорія {directory} перевірена/створена успішно")
         except Exception as e:
             print(f"Помилка при створенні директорії {directory}: {e}")
+            return False
+        
+        # Перевіряємо, чи маємо доступ на запис до директорії
+        if not os.access(directory, os.W_OK):
+            print(f"Немає доступу на запис до директорії {directory}")
             return False
         
         # Зберігаємо шлях до директорії моделей для подальшого використання
@@ -668,6 +773,20 @@ class NGUAnalytics:
         # Завантажуємо resource_need, якщо він існує
         if os.path.exists(resource_need_path):
             try:
+                # Перевірка розміру файлу - якщо менше 1KB, ймовірно це заглушка
+                file_size = os.path.getsize(resource_need_path)
+                if file_size < 1024:  # менше 1KB
+                    try:
+                        # Спробуємо відкрити як текстовий файл
+                        with open(resource_need_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            content = f.read(100)  # Читаємо перші 100 символів
+                            if '#' in content or 'заглушка' in content:
+                                print(f"Файл resource_need є заглушкою, буде створена нова модель при навчанні")
+                                continue
+                    except UnicodeDecodeError:
+                        # Якщо не вдалося відкрити як текст, спробуємо як бінарний
+                        pass
+                
                 resource_model = joblib.load(resource_need_path)
                 self.models['resource_need'] = resource_model
                 print(f"Модель resource_need завантажена з {resource_need_path}")
@@ -679,6 +798,20 @@ class NGUAnalytics:
         # Завантажуємо resource_predictor, якщо він існує
         if os.path.exists(resource_predictor_path):
             try:
+                # Перевірка розміру файлу - якщо менше 1KB, ймовірно це заглушка
+                file_size = os.path.getsize(resource_predictor_path)
+                if file_size < 1024:  # менше 1KB
+                    try:
+                        # Спробуємо відкрити як текстовий файл
+                        with open(resource_predictor_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            content = f.read(100)  # Читаємо перші 100 символів
+                            if '#' in content or 'заглушка' in content:
+                                print(f"Файл resource_predictor є заглушкою, буде створена нова модель при навчанні")
+                                continue
+                    except UnicodeDecodeError:
+                        # Якщо не вдалося відкрити як текст, спробуємо як бінарний
+                        pass
+                
                 # Перевіряємо, чи це не той самий файл, що й resource_need (для уникнення дублювання)
                 if resource_model is not None and os.path.exists(resource_need_path):
                     try:
@@ -724,6 +857,20 @@ class NGUAnalytics:
         threat_predictor_path = os.path.join(directory, "threat_predictor.joblib")
         if os.path.exists(threat_predictor_path):
             try:
+                # Перевірка розміру файлу - якщо менше 1KB, ймовірно це заглушка
+                file_size = os.path.getsize(threat_predictor_path)
+                if file_size < 1024:  # менше 1KB
+                    try:
+                        # Спробуємо відкрити як текстовий файл
+                        with open(threat_predictor_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            content = f.read(100)  # Читаємо перші 100 символів
+                            if '#' in content or 'заглушка' in content:
+                                print(f"Файл threat_predictor є заглушкою, буде створена нова модель при навчанні")
+                                continue
+                    except UnicodeDecodeError:
+                        # Якщо не вдалося відкрити як текст, спробуємо як бінарний
+                        pass
+                
                 self.models['threat_predictor'] = joblib.load(threat_predictor_path)
                 print(f"Модель threat_predictor завантажена з {threat_predictor_path}")
                 models_loaded += 1
@@ -731,10 +878,50 @@ class NGUAnalytics:
                 print(f"Помилка завантаження моделі threat_predictor: {e}")
                 print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
         
+        # Завантажуємо threat_prediction, якщо він існує і відрізняється від threat_predictor
+        threat_prediction_path = os.path.join(directory, "threat_prediction.joblib")
+        if os.path.exists(threat_prediction_path) and (not os.path.exists(threat_predictor_path) or 
+                                                     not os.path.samefile(threat_prediction_path, threat_predictor_path)):
+            try:
+                # Перевірка розміру файлу - якщо менше 1KB, ймовірно це заглушка
+                file_size = os.path.getsize(threat_prediction_path)
+                if file_size < 1024:  # менше 1KB
+                    try:
+                        # Спробуємо відкрити як текстовий файл
+                        with open(threat_prediction_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            content = f.read(100)  # Читаємо перші 100 символів
+                            if '#' in content or 'заглушка' in content:
+                                print(f"Файл threat_prediction є заглушкою, буде створена нова модель при навчанні")
+                                continue
+                    except UnicodeDecodeError:
+                        # Якщо не вдалося відкрити як текст, спробуємо як бінарний
+                        pass
+                
+                self.models['threat_prediction'] = joblib.load(threat_prediction_path)
+                print(f"Модель threat_prediction завантажена з {threat_prediction_path}")
+                models_loaded += 1
+            except Exception as e:
+                print(f"Помилка завантаження моделі threat_prediction: {e}")
+                print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
+        
         # Завантажуємо incident_predictor, якщо він існує
         incident_predictor_path = os.path.join(directory, "incident_predictor.joblib")
         if os.path.exists(incident_predictor_path):
             try:
+                # Перевірка розміру файлу - якщо менше 1KB, ймовірно це заглушка
+                file_size = os.path.getsize(incident_predictor_path)
+                if file_size < 1024:  # менше 1KB
+                    try:
+                        # Спробуємо відкрити як текстовий файл
+                        with open(incident_predictor_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            content = f.read(100)  # Читаємо перші 100 символів
+                            if '#' in content or 'заглушка' in content:
+                                print(f"Файл incident_predictor є заглушкою, буде створена нова модель при навчанні")
+                                continue
+                    except UnicodeDecodeError:
+                        # Якщо не вдалося відкрити як текст, спробуємо як бінарний
+                        pass
+                
                 self.models['incident_predictor'] = joblib.load(incident_predictor_path)
                 print(f"Модель incident_predictor завантажена з {incident_predictor_path}")
                 models_loaded += 1
@@ -744,21 +931,39 @@ class NGUAnalytics:
         
         # Завантажуємо інші моделі, які не були завантажені вище
         try:
-            for model_file in os.listdir(directory):
-                if model_file.endswith('.joblib'):
-                    model_name = os.path.splitext(model_file)[0]
-                    # Пропускаємо вже завантажені моделі
-                    if model_name in self.models or model_name in ['resource_need', 'resource_predictor', 'threat_predictor', 'incident_predictor']:
-                        continue
-                        
-                    model_path = os.path.join(directory, model_file)
-                    try:
-                        self.models[model_name] = joblib.load(model_path)
-                        print(f"Модель {model_name} завантажена з {model_path}")
-                        models_loaded += 1
-                    except Exception as e:
-                        print(f"Помилка завантаження моделі {model_name}: {e}")
-                        print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
+            # Перевіряємо, чи існує директорія і чи маємо до неї доступ
+            if os.path.exists(directory) and os.path.isdir(directory) and os.access(directory, os.R_OK):
+                for model_file in os.listdir(directory):
+                    if model_file.endswith('.joblib'):
+                        model_name = os.path.splitext(model_file)[0]
+                        # Пропускаємо вже завантажені моделі
+                        if model_name in self.models or model_name in ['resource_need', 'resource_predictor', 'threat_predictor', 'threat_prediction', 'incident_predictor']:
+                            continue
+                            
+                        model_path = os.path.join(directory, model_file)
+                        try:
+                            # Перевірка розміру файлу - якщо менше 1KB, ймовірно це заглушка
+                            file_size = os.path.getsize(model_path)
+                            if file_size < 1024:  # менше 1KB
+                                try:
+                                    # Спробуємо відкрити як текстовий файл
+                                    with open(model_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                        content = f.read(100)  # Читаємо перші 100 символів
+                                        if '#' in content or 'заглушка' in content:
+                                            print(f"Файл {model_name} є заглушкою, буде створена нова модель при навчанні")
+                                            continue
+                                except UnicodeDecodeError:
+                                    # Якщо не вдалося відкрити як текст, спробуємо як бінарний
+                                    pass
+                            
+                            self.models[model_name] = joblib.load(model_path)
+                            print(f"Модель {model_name} завантажена з {model_path}")
+                            models_loaded += 1
+                        except Exception as e:
+                            print(f"Помилка завантаження моделі {model_name}: {e}")
+                            print(f"Спробуйте перенавчити модель або перевірити цілісність файлу")
+            else:
+                print(f"Директорія {directory} не існує, не є директорією або немає доступу для читання")
         except Exception as e:
             print(f"Помилка при скануванні директорії моделей: {e}")
         
@@ -791,21 +996,24 @@ class NGUAnalytics:
             from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
             
             # Модель для прогнозування загроз (класифікація)
-            self.models['threat_predictor'] = RandomForestClassifier(n_estimators=10)
-            self.models['threat_prediction'] = self.models['threat_predictor']  # Альтернативна назва
+            threat_model = RandomForestClassifier(n_estimators=10)
+            self.models['threat_predictor'] = threat_model
+            self.models['threat_prediction'] = threat_model  # Альтернативна назва для сумісності з analytics_ai.py
             
             # Моделі для прогнозування ресурсів (регресія)
             resource_model = RandomForestRegressor(n_estimators=10)
             self.models['resource_predictor'] = resource_model
-            self.models['resource_need'] = resource_model
+            self.models['resource_need'] = resource_model  # Альтернативна назва для сумісності
             
             # Модель для прогнозування інцидентів (класифікація)
             self.models['incident_predictor'] = RandomForestClassifier(n_estimators=10)
             
             print("Порожні моделі успішно ініціалізовані")
+            print("УВАГА: Ініціалізовано порожні моделі-заглушки. Рекомендується навчити моделі перед використанням.")
             return True
         except Exception as e:
             print(f"Помилка при ініціалізації порожніх моделей: {e}")
+            print("Система може працювати некоректно без моделей машинного навчання.")
             return False
 
 # Приклад використання

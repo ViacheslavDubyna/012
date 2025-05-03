@@ -1,0 +1,122 @@
+/* Основні стилі для системи ДПСУ */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Стилі для карти */
+#map-container, .map-container {
+    height: 500px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+}
+
+#map, #incidents-map {
+    height: 100%;
+    width: 100%;
+}
+
+/* Стилі для маркерів на карті */
+.incident-marker {
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    background-color: red;
+    border: 2px solid white;
+}
+
+.checkpoint-marker {
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    background-color: blue;
+    border: 2px solid white;
+}
+
+/* Стилі для панелі статистики */
+.stats-panel {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.stats-panel h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* Стилі для графіків */
+.chart-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Стилі для списку інцидентів */
+.incident-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.incident-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.incident-item:last-child {
+    border-bottom: none;
+}
+
+.incident-item .badge {
+    margin-left: 5px;
+}
+
+/* Стилі для прогнозу загроз */
+.threat-forecast {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.threat-level {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.threat-low {
+    background-color: green;
+}
+
+.threat-medium {
+    background-color: orange;
+}
+
+.threat-high {
+    background-color: red;
+}
