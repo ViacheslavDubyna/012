@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">НГУ ІАС</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -39,9 +39,15 @@
 
     <div class="container mt-4">
         <div class="row">
+            <div class="d-flex align-items-center mb-4">
+                <img src="{{ url_for('static', filename='img/ngu_emblem_original.svg') }}" alt="Емблема НГУ" class="ngu-emblem-small">
+                <div class="ms-3">
+                    <h1 class="display-5 mb-2">Інформаційно-аналітична система Національної гвардії України</h1>
+                    <p class="lead">Система для моніторингу, аналізу та прогнозування інцидентів громадської безпеки</p>
+                </div>
+            </div>
             <div class="col-12">
-                <h1>Інформаційно-аналітична система НГУ</h1>
-                <p class="lead">Ласкаво просимо до інформаційно-аналітичної системи Національної гвардії України.</p>
+                <p class="lead">Ласкаво просимо до лав Національної гвардії України.</p>
             </div>
         </div>
 
@@ -50,7 +56,8 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Карта інцидентів</h5>
+                        <h5 class="card-title">Карта об'єктів НГУ</h5>
+                        <p class="card-text">На карті відображаються місця дислокації підрозділів, маршрути патрулювання та інциденти, характерні для діяльності Національної гвардії України.</p>
                         <div id="map-container">
                             <div id="map"></div>
                         </div>
@@ -135,7 +142,7 @@
 
     <footer class="bg-light py-3 mt-5">
         <div class="container text-center">
-            <p>© 2024 Національна гвардія України. Всі права захищені.</p>
+            <p>© 2025 Національна гвардія України. Всі права захищені. Розробник системи — підполковник Дубина В. М.</p>
         </div>
     </footer>
 

@@ -1,0 +1,32 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <!-- Основний фон емблеми - темно-зелений -->
+    <circle cx="50" cy="50" r="50" fill="#1b3a1b"/>
+    
+    <!-- Зовнішня зірка - золота -->
+    <g>
+      <polygon points="50,10 60,40 90,40 65,60 75,90 50,70 25,90 35,60 10,40 40,40" fill="#FFD700" stroke="#B8860B" stroke-width="2"/>
+      
+      <!-- Внутрішнє коло - біле -->
+      <circle cx="50" cy="50" r="22" fill="#FFFFFF" stroke="#FFD700" stroke-width="2"/>
+      
+      <!-- Внутрішня зірка - темно-зелена -->
+      <g>
+        <polygon points="50,32 54,46 68,46 56,54 60,68 50,60 40,68 44,54 32,46 46,46" fill="#1b3a1b" stroke="#FFD700" stroke-width="1"/>
+        
+        <!-- Центральне коло - золоте -->
+        <circle cx="50" cy="50" r="8" fill="#FFD700"/>
+        
+        <!-- Текст UA - чорний -->
+        <text x="50" y="54" text-anchor="middle" font-size="8" fill="#000000" font-family="Arial" font-weight="bold">UA</text>
+      </g>
+    </g>
+    
+    <!-- Декоративні елементи зверху - золоті -->
+    <g>
+      <path d="M50 0 Q55 10 50 20 Q45 10 50 0 Z" fill="#FFD700" stroke="#B8860B" stroke-width="1"/>
+      <path d="M50 0 Q60 15 50 30 Q40 15 50 0 Z" fill="#FFD700" stroke="#B8860B" stroke-width="1" opacity="0.7"/>
+      <path d="M50 0 Q65 20 50 40 Q35 20 50 0 Z" fill="#FFD700" stroke="#B8860B" stroke-width="1" opacity="0.5"/>
+    </g>
+  </g>
+</svg>

@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>Прогнози | НГУ ІАС</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">НГУ ІАС</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -38,74 +40,136 @@
 
     <div class="container mt-4">
         <div class="row">
-            <div class="col-12">
-                <h1>Прогнози правопорушень</h1>
-                <p class="lead">Прогнозні дані щодо можливих правопорушень на наступні періоди.</p>
+            <div class="col-12 mb-4">
+                <h1 class="display-5">Прогнозування інцидентів</h1>
+                <p class="lead">Прогнозування правопорушень та необхідних ресурсів на основі історичних даних та аналітичних моделей</p>
             </div>
         </div>
 
-        <div class="row mt-4">
+        <!-- Параметри прогнозування -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Параметри прогнозування</h5>
+                        <form class="row g-3">
+                            <div class="col-md-3">
+                                <label for="prediction-model" class="form-label">Модель прогнозування</label>
+                                <select class="form-select" id="prediction-model">
+                                    <option value="time-series" selected>Часові ряди (ARIMA)</option>
+                                    <option value="ml-regression">Регресійна модель</option>
+                                    <option value="ml-classification">Класифікаційна модель</option>
+                                    <option value="ensemble">Ансамбль моделей</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="prediction-horizon" class="form-label">Горизонт прогнозування</label>
+                                <select class="form-select" id="prediction-horizon">
+                                    <option value="1-week">1 тиждень</option>
+                                    <option value="2-weeks" selected>2 тижні</option>
+                                    <option value="1-month">1 місяць</option>
+                                    <option value="3-months">3 місяці</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="prediction-region" class="form-label">Регіон</label>
+                                <select class="form-select" id="prediction-region">
+                                    <option value="all" selected>Всі регіони</option>
+                                    <option value="west">Західний регіон</option>
+                                    <option value="east">Східний регіон</option>
+                                    <option value="south">Південний регіон</option>
+                                    <option value="north">Північний регіон</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary w-100">Прогнозувати</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карта прогнозів -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Карта прогнозованих інцидентів</h5>
+                        <p class="card-text">Географічний розподіл прогнозованих інцидентів на наступні 2 тижні</p>
+                        <div id="prediction-map-container">
+                            <div id="prediction-map" style="height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Графіки прогнозів -->
+        <div class="row">
             <div class="col-md-6 mb-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Короткостроковий прогноз (7 днів)</h5>
-                        <div class="chart-container">
-                            <!-- Тут буде графік короткострокового прогнозу -->
-                            <p class="text-center text-muted">Графік прогнозу правопорушень на наступний тиждень</p>
-                        </div>
+                        <h5 class="card-title">Прогноз кількості інцидентів</h5>
+                        <canvas id="incidents-prediction-chart" height="300"></canvas>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 mb-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Довгостроковий прогноз (30 днів)</h5>
-                        <div class="chart-container">
-                            <!-- Тут буде графік довгострокового прогнозу -->
-                            <p class="text-center text-muted">Графік прогнозу правопорушень на наступний місяць</p>
-                        </div>
+                        <h5 class="card-title">Прогноз необхідних ресурсів</h5>
+                        <canvas id="resources-prediction-chart" height="300"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-12">
+        <!-- Таблиця прогнозів -->
+        <div class="row">
+            <div class="col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Прогноз ризиків правопорушень за районами</h5>
+                        <h5 class="card-title">Детальний прогноз за типами інцидентів</h5>
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Район</th>
-                                        <th>Завтра</th>
-                                        <th>Через 3 дні</th>
-                                        <th>Через тиждень</th>
-                                        <th>Рекомендації</th>
+                                        <th>Тип інциденту</th>
+                                        <th>Прогноз на наступний тиждень</th>
+                                        <th>Прогноз на 2 тижні</th>
+                                        <th>Зміна</th>
+                                        <th>Достовірність прогнозу</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>Центральний район</td>
-                                        <td><span class="badge bg-danger">Високий</span></td>
-                                        <td><span class="badge bg-warning">Середній</span></td>
-                                        <td><span class="badge bg-success">Низький</span></td>
-                                        <td>Збільшити кількість патрулів на 20%</td>
+                                        <td>Порушення громадського порядку</td>
+                                        <td>42</td>
+                                        <td>38</td>
+                                        <td><span class="text-success">-9.5%</span></td>
+                                        <td>87%</td>
                                     </tr>
                                     <tr>
-                                        <td>Південний район</td>
-                                        <td><span class="badge bg-success">Низький</span></td>
-                                        <td><span class="badge bg-warning">Середній</span></td>
-                                        <td><span class="badge bg-danger">Високий</span></td>
-                                        <td>Посилити патрулювання в вихідні дні</td>
+                                        <td>Масові заходи</td>
+                                        <td>15</td>
+                                        <td>23</td>
+                                        <td><span class="text-danger">+53.3%</span></td>
+                                        <td>92%</td>
                                     </tr>
                                     <tr>
-                                        <td>Східний район</td>
-                                        <td><span class="badge bg-warning">Середній</span></td>
-                                        <td><span class="badge bg-warning">Середній</span></td>
-                                        <td><span class="badge bg-warning">Середній</span></td>
-                                        <td>Стандартний режим патрулювання</td>
+                                        <td>Охорона об'єктів</td>
+                                        <td>28</td>
+                                        <td>31</td>
+                                        <td><span class="text-danger">+10.7%</span></td>
+                                        <td>85%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Транспортування цінностей</td>
+                                        <td>12</td>
+                                        <td>14</td>
+                                        <td><span class="text-danger">+16.7%</span></td>
+                                        <td>78%</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -115,17 +179,57 @@
             </div>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-12">
+        <!-- Рекомендації щодо ресурсів -->
+        <div class="row">
+            <div class="col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Фактори впливу на прогноз</h5>
-                        <ul class="list-group">
-                            <li class="list-group-item">Сезонність: Літній період - збільшення масових заходів</li>
-                            <li class="list-group-item">Свята: Наближення державних свят - підвищений ризик порушень</li>
-                            <li class="list-group-item">Соціальні фактори: Стабільна соціальна ситуація - нейтральний вплив</li>
-                            <li class="list-group-item">Масові заходи: Заплановані концерти та фестивалі - підвищений ризик</li>
-                        </ul>
+                        <h5 class="card-title">Рекомендації щодо розподілу ресурсів</h5>
+                        <p>На основі прогнозованих інцидентів система рекомендує наступний розподіл ресурсів:</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Персонал</h6>
+                                <ul class="list-group mb-3">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Західний регіон
+                                        <span class="badge bg-primary rounded-pill">+15 осіб</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Східний регіон
+                                        <span class="badge bg-primary rounded-pill">+8 осіб</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Південний регіон
+                                        <span class="badge bg-success rounded-pill">Без змін</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Північний регіон
+                                        <span class="badge bg-danger rounded-pill">-5 осіб</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Транспорт</h6>
+                                <ul class="list-group mb-3">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Західний регіон
+                                        <span class="badge bg-primary rounded-pill">+3 одиниці</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Східний регіон
+                                        <span class="badge bg-primary rounded-pill">+2 одиниці</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Південний регіон
+                                        <span class="badge bg-danger rounded-pill">-1 одиниця</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Північний регіон
+                                        <span class="badge bg-success rounded-pill">Без змін</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,13 +238,13 @@
 
     <footer class="bg-light py-3 mt-5">
         <div class="container text-center">
-            <p>© 2023 Національна гвардія України. Всі права захищені.</p>
+            <p>© 2025 Національна гвардія України. Всі права захищені. Розробник системи — підполковник Дубина В. М.</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="{{ url_for('static', filename='js/predictions.js') }}"></script>
 </body>
 </html>

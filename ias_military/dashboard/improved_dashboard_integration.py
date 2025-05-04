@@ -24,12 +24,8 @@ app = dash.Dash(
         {"name": "viewport", "content": "width=device-width, initial-scale=1.0"}
     ],
     title="Інформаційно-аналітична система НГУ",
-    suppress_callback_exceptions=True,
-    external_stylesheets=[
-        "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css",
-        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css",
-        "https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
-    ]
+    suppress_callback_exceptions=True
+    # Видалено external_stylesheets, оскільки стилі завантажуються з папки assets
 )
 
 # Покращена кольорова схема з національними кольорами України
@@ -157,7 +153,8 @@ def create_ukraine_map(map_data=None):
         for situation in map_data:
             # Парсимо координати
             try:
-                lat, lon = map(float, situation['coordinates'].split(','))
+                # Виправлено: використовуємо list comprehension замість map
+                lat, lon = [float(coord) for coord in situation['coordinates'].split(',')]
                 lats.append(lat)
                 lons.append(lon)
                 texts.append(f"{situation.get('location', 'N/A')} ({situation.get('status', 'N/A')})")
@@ -238,8 +235,7 @@ def create_threat_analysis():
             plot_bgcolor='rgba(0,0,0,0)'
         )
         return fig
-    # Отримуємо дані про рівень загрози
-    threat_data = get_threat_level_history()
+    # Продовжуємо з наявними даними
     
     # Створюємо графік
     fig = go.Figure()
@@ -368,8 +364,7 @@ def create_resource_management():
             plot_bgcolor='rgba(0,0,0,0)'
         )
         return fig
-    # Отримуємо дані про ресурси
-    resource_data = get_resources_distribution()
+    # Продовжуємо з наявними даними
     
     # Створюємо дані для графіка
     resource_types = list(resource_data['by_type'].keys())
@@ -438,8 +433,7 @@ def create_resource_status_chart():
             plot_bgcolor='rgba(0,0,0,0)'
         )
         return fig
-    # Отримуємо дані про ресурси
-    resource_data = get_resources_distribution()
+    # Продовжуємо з наявними даними
     
     # Створюємо дані для графіка
     status_labels = list(resource_data['by_status'].keys())
@@ -718,15 +712,101 @@ app.layout = html.Div(style={'backgroundColor': colors['background'], 'color': c
         ])
     ]),
 
-    # Інтервал для автоматичного оновлення даних
+    # Визначення структури дашборду - видалено дублювання
+    # Заголовок
+    html.Div(className="header", children=[
+        html.H1("Інформаційно-аналітична система НГУ"),
+        html.Div(id='live-update-time') # Місце для часу оновлення
+    ]),
+
+    # Інтервал для оновлення даних
     dcc.Interval(
         id='interval-component',
-        interval=60*1000,  # оновлення кожну хвилину (60000 ms)
+        interval=60*1000, # оновлення кожну хвилину
         n_intervals=0
-    )
+    ),
+
+    # Основний контент дашборду
+    html.Div(className="row", children=[
+        # Ліва колонка (Карта та Статистика)
+        html.Div(className="col-lg-8 mb-4", children=[
+            html.Div(className="card card-visualization h-100", children=[
+                html.Div(className="card-header", children="Оперативна карта"),
+                html.Div(className="card-content", children=[
+                    dcc.Graph(id='ukraine-map-alt', config={'displayModeBar': False})
+                ])
+            ])
+        ]),
+        # Права колонка (Статистика та Інциденти)
+        html.Div(className="col-lg-4 mb-4", children=[
+            html.Div(className="card card-resources mb-4", children=[
+                html.Div(className="card-header", children="Загальна статистика"),
+                html.Div(className="card-content", id='dashboard-statistics')
+            ]),
+            html.Div(className="card card-threats h-100", children=[
+                html.Div(className="card-header", children="Останні інциденти"),
+                html.Div(className="card-content", children=[
+                    dash_table.DataTable(
+                        id='recent-incidents-table',
+                        columns=[
+                            {"name": "Тип", "id": "type"},
+                            {"name": "Місце", "id": "location"},
+                            {"name": "Час", "id": "timestamp"},
+                            {"name": "Статус", "id": "status"}
+                        ],
+                        style_cell={'textAlign': 'left', 'padding': '5px'},
+                        style_header={
+                            'backgroundColor': 'var(--color-threats)',
+                            'fontWeight': 'bold',
+                            'borderBottom': '1px solid var(--color-accent)'
+                        },
+                        style_data_conditional=[
+                            {
+                                'if': {'row_index': 'odd'},
+                                'backgroundColor': 'rgb(248, 248, 248)'
+                            }
+                        ],
+                        page_size=5 # Показувати 5 останніх
+                    )
+                ])
+            ])
+        ])
+    ]),
+
+    # Другий ряд (Аналітика та Ресурси)
+    html.Div(className="row", children=[
+        html.Div(className="col-lg-6 mb-4", children=[
+            html.Div(className="card card-forecasting h-100", children=[
+                html.Div(className="card-header", children="Динаміка рівня загрози"),
+                html.Div(className="card-content", children=[
+                    dcc.Graph(id='threat-analysis-graph', config={'displayModeBar': False})
+                ])
+            ])
+        ]),
+        html.Div(className="col-lg-6 mb-4", children=[
+            html.Div(className="card card-resources h-100", children=[
+                html.Div(className="card-header", children="Управління ресурсами"),
+                html.Div(className="card-content", children=[
+                    dcc.Graph(id='resource-management-graph', config={'displayModeBar': False})
+                ])
+            ])
+        ])
+    ]),
+
+    # Третій ряд (Прогнози AI)
+    html.Div(className="row", children=[
+        html.Div(className="col-12 mb-4", children=[
+            html.Div(className="card card-forecasting", children=[
+                html.Div(className="card-header", children="Прогнози AI"),
+                html.Div(className="card-content", id='ai-predictions')
+            ])
+        ])
+    ])
+
+    # Підвал (можна додати пізніше)
+    # html.Footer(className="footer", children=[...])
 ])
 
-# Колбеки для оновлення даних
 @app.callback(
     [
         Output("units-count", "children"),
@@ -755,10 +835,9 @@ def update_map(n_clicks, n_intervals):
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else 'interval-component'
     # Оновлюємо карту при натисканні кнопки або за інтервалом
     # (можна додати логіку, щоб не оновлювати за інтервалом, якщо щойно натиснули кнопку)
+    """Оновлення карти"""
     map_data = get_map_data()
     return create_ukraine_map(map_data)
-    """Оновлення карти"""
-    return create_ukraine_map(get_map_data())
 
 @app.callback(
     Output("threat-analysis", "figure"),
@@ -805,9 +884,6 @@ def update_incidents_table(n):
     ]
 
     rows = []
-    """Оновлення таблиці інцидентів"""
-    incidents = get_recent_incidents()
-    rows = []
     for incident in incidents:
         # Визначаємо клас для рядка залежно від рівня важливості
         severity_class = ""
@@ -846,9 +922,6 @@ def update_ai_predictions(n):
     if not predictions:
         return html.Div("Немає доступних прогнозів AI.", className="text-center text-muted p-3")
 
-    prediction_cards = []
-    """Оновлення прогнозів AI"""
-    predictions = get_ai_predictions()
     prediction_cards = []
     
     for prediction in predictions:

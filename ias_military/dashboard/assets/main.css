@@ -1,0 +1,165 @@
+/* Основні стилі для інформаційно-аналітичної системи НГУ */
+
+:root {
+    --color-background: #FAFAFA; /* світло-сірий фон */
+    --color-text: #37474F;       /* темно-сірий текст */
+    --color-accent: #0057b7;     /* синій (національний колір України) */
+    --color-accent2: #ffd700;    /* жовтий (національний колір України) */
+    --color-visualization: #E3F2FD; /* світло-блакитний */
+    --color-threats: #FFF3E0;    /* світло-оранжевий */
+    --color-resources: #E8F5E9;  /* світло-зелений */
+    --color-forecasting: #F3E5F5;/* світло-фіолетовий */
+    --color-warning: #FF9800;    /* оранжевий для попереджень */
+    --color-danger: #F44336;     /* червоний для небезпеки */
+    --color-success: #4CAF50;     /* зелений для успіху */
+    --color-white: #FFFFFF;
+    --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    font-family: var(--font-primary);
+    margin: 0;
+    padding: 0; /* Забираємо відступи, контейнер Bootstrap додасть свої */
+    background-color: var(--color-background);
+    color: var(--color-text);
+    line-height: 1.6;
+}
+
+.header {
+    background-color: var(--color-accent);
+    color: var(--color-white);
+    padding: 1rem 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+/* Стилі для контейнера дашборду (якщо використовується окремий) */
+.dashboard-container {
+    padding: 0 2rem; /* Додаємо відступи з боків */
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Збільшено minmax */
+    gap: 1.5rem;
+}
+
+.card {
+    background: var(--color-white);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    padding: 1.5rem;
+    transition: box-shadow 0.3s ease-in-out;
+    border: 1px solid #e0e0e0; /* Додано тонку рамку */
+}
+
+.card:hover {
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+
+.card-header {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+    color: var(--color-accent);
+}
+
+.card-content p {
+    margin-bottom: 0.5rem;
+}
+
+.button, .btn {
+    background-color: var(--color-accent2);
+    color: var(--color-accent);
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.button:hover, .btn:hover {
+    background-color: var(--color-accent);
+    color: var(--color-accent2);
+}
+
+/* Стилізація таблиць Dash */
+.dash-table-container .dash-spreadsheet-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dash-table-container .dash-spreadsheet-container th,
+.dash-table-container .dash-spreadsheet-container td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.dash-table-container .dash-spreadsheet-container th {
+    background-color: var(--color-visualization);
+    font-weight: 600;
+    color: var(--color-accent);
+}
+
+/* Стилізація елементів керування Dash (Dropdown, Input etc.) */
+.Select-control, .Input {
+    border-radius: 4px !important;
+    border: 1px solid #ccc !important;
+}
+
+.Select-menu-outer {
+    border-radius: 4px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Додаткові стилі для карток з різними фонами */
+.card-visualization {
+    background-color: var(--color-visualization);
+}
+
+.card-threats {
+    background-color: var(--color-threats);
+}
+
+.card-resources {
+    background-color: var(--color-resources);
+}
+
+.card-forecasting {
+    background-color: var(--color-forecasting);
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+    .header {
+        padding: 1rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    .header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .dashboard-container {
+        padding: 0 1rem;
+    }
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* Одна колонка на мобільних */
+    }
+}

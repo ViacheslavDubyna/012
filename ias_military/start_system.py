@@ -8,83 +8,156 @@ import platform
 import webbrowser
 import subprocess
 import ctypes
+import logging # Додано імпорт logging
 from setup_postgres import setup_postgres, check_postgres_running
 from config.config import SERVER_CONFIG
 from flask import Flask
 
+# Налаштування логування
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', handlers=[
+    logging.StreamHandler(sys.stdout) # Виводити логи в stdout
+])
+
 def print_header(message):
     """Виведення заголовка з форматуванням"""
-    print("\n" + "=" * 80)
-    print(f" {message} ".center(80, "="))
-    print("=" * 80)
+    log_msg = "\n" + "=" * 80 + "\n" + f" {message} ".center(80, "=") + "\n" + "=" * 80
+    logging.info(log_msg) # Змінено print на logging
 
 def init_database():
     """Ініціалізація бази даних"""
+    logging.info("Початок ініціалізації бази даних...") # Додано логування
     print_header("Ініціалізація бази даних")
     try:
         # Імпортуємо функцію з run.py
         from run import init_db
-        init_db()
+        init_db() # Виклик функції, яка вже має логування
+        logging.info("Ініціалізація бази даних завершена успішно.") # Додано логування
         return True
     except Exception as e:
-        print(f"Помилка при ініціалізації бази даних: {e}")
+        logging.error(f"Помилка при ініціалізації бази даних: {e}", exc_info=True) # Змінено print на logging
         return False
 
 def seed_database():
     """Заповнення бази даних тестовими даними"""
+    logging.info("Початок заповнення бази даних тестовими даними...") # Додано логування
     print_header("Заповнення бази даних тестовими даними")
     try:
         # Імпортуємо функцію з run.py
         from run import seed_db
-        seed_db()
+        seed_db() # Виклик функції, яка вже має логування
+        logging.info("Заповнення бази даних тестовими даними завершено успішно.") # Додано логування
         return True
     except Exception as e:
-        print(f"Помилка при заповненні бази даних: {e}")
+        logging.error(f"Помилка при заповненні бази даних: {e}", exc_info=True) # Змінено print на logging
         return False
 
 def start_web_interface():
     """Запуск веб-інтерфейсу системи"""
+    logging.info("Початок запуску веб-інтерфейсу...") # Додано логування
     print_header("Запуск веб-інтерфейсу системи")
     try:
         # Імпортуємо функцію з run.py
-        from run import create_app
-        app = create_app()
-        with app.app_context():
-            pass
-        
-        # Виводимо інформацію про запуск
-        host = SERVER_CONFIG['host']
-        port = SERVER_CONFIG['port']
-        url = f"http://{'localhost' if host == '0.0.0.0' else host}:{port}"
-        
-        print(f"Інформаційно-аналітична система запускається за адресою: {url}")
-        print(f"Дашборд буде доступний за адресою: {url}/dashboard")
-        print(f"API буде доступне за адресою: {url}/api")
-        
-        # Відкриваємо браузер з невеликою затримкою
-        def open_browser():
-            time.sleep(2)  # Даємо час на запуск сервера
-            webbrowser.open(url)
-        
-        # Запускаємо браузер у окремому потоці
-        import threading
-        threading.Thread(target=open_browser).start()
-        
-        # Запускаємо додаток через dispatcher для інтеграції Dash
-        from run import register_dashapp
-        from werkzeug.serving import run_simple
-        try:
-            dispatcher = register_dashapp(app)
-        except Exception as e:
-            print(f"Помилка при інтеграції Dash з Flask: {e}")
-            print("Запуск системи без інтеграції з Dash...")
-            dispatcher = app
-            
-        run_simple(host, port, dispatcher, use_reloader=SERVER_CONFIG['debug'], use_debugger=SERVER_CONFIG['debug'])
+        from run import main as run_main # Імпортуємо main з run.py
+        logging.info("Виклик main() з run.py для запуску сервера...")
+        run_main() # Запускаємо головну функцію з run.py
+        logging.info("Веб-інтерфейс успішно запущено (run_main завершив роботу, хоча не мав би).") # Малоймовірно, що дійде сюди
         return True
-    except Exception as e:
-        print(f"Помилка при запуску веб-інтерфейсу: {e}")
+    except ImportError as e:
+        logging.error(f"Помилка імпорту: Не вдалося імпортувати необхідні компоненти з run.py: {e}", exc_info=True)
         return False
+    except Exception as e:
+        logging.error(f"Помилка при запуску веб-інтерфейсу: {e}", exc_info=True) # Змінено print на logging
+        return False
+
+def check_admin_rights():
+    """Перевірка наявності прав адміністратора"""
+    logging.info("Перевірка прав адміністратора...") # Додано логування
+    try:
+        is_admin = (os.getuid() == 0) if platform.system() != "Windows" else ctypes.windll.shell32.IsUserAnAdmin()
+        logging.info(f"Права адміністратора: {'Є' if is_admin else 'Немає'}") # Додано логування
+        return is_admin
+    except AttributeError:
+        # У випадку, якщо getuid() недоступний (не Unix-подібна система без ctypes)
+        logging.warning("Не вдалося визначити права адміністратора.")
+        return False
+    except Exception as e:
+        logging.error(f"Помилка при перевірці прав адміністратора: {e}", exc_info=True)
+        return False
+
+def run_as_admin():
+    """Перезапуск скрипта з правами адміністратора"""
+    logging.warning("Спроба перезапуску скрипта з правами адміністратора...")
+    if platform.system() == "Windows":
+        try:
+            logging.info("Використання ctypes для перезапуску з правами адміністратора у Windows.")
+            result = ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+            logging.info(f"Результат ShellExecuteW: {result}")
+            if result <= 32:
+                logging.error(f"Не вдалося перезапустити скрипт з правами адміністратора. Код помилки: {result}")
+                return False
+            else:
+                logging.info("Скрипт успішно запитав підвищення прав.")
+                return True # Успішно запитано підвищення
+        except Exception as e:
+            logging.error(f"Помилка при спробі перезапуску з правами адміністратора: {e}", exc_info=True)
+            return False
+    else:
+        # Для Linux/macOS (потребує sudo)
+        logging.warning("Для запуску з правами адміністратора на Linux/macOS, будь ласка, використовуйте 'sudo python start_system.py'")
+        return False
+
+def main():
+    """Головна функція запуску системи"""
+    logging.info("Початок виконання main() у start_system.py")
+
+    # Перевірка та запит прав адміністратора (якщо потрібно для PostgreSQL)
+    # if not check_admin_rights():
+    #     print("Для налаштування та запуску PostgreSQL можуть знадобитися права адміністратора.")
+    #     if run_as_admin():
+    #         sys.exit(0) # Вихід, оскільки скрипт перезапускається
+    #     else:
+    #         print("Не вдалося отримати права адміністратора. Продовження без них може призвести до помилок.")
+    # else:
+    #     print("Скрипт запущено з правами адміністратора.")
+
+    # 1. Налаштування PostgreSQL
+    print_header("Налаштування PostgreSQL")
+    logging.info("Початок налаштування PostgreSQL...")
+    if setup_postgres():
+        logging.info("Налаштування PostgreSQL завершено успішно.")
+        # Перевірка, чи запущено PostgreSQL
+        if not check_postgres_running():
+            logging.error("PostgreSQL не запущено після налаштування. Подальший запуск системи неможливий.")
+            sys.exit(1)
+        else:
+            logging.info("PostgreSQL успішно запущено.")
+    else:
+        logging.error("Помилка під час налаштування PostgreSQL. Запуск системи скасовано.")
+        sys.exit(1)
+
+    # 2. Ініціалізація бази даних
+    if not init_database():
+        logging.error("Не вдалося ініціалізувати базу даних. Запуск системи скасовано.")
+        sys.exit(1)
+
+    # 3. Заповнення бази даних тестовими даними (опціонально)
+    # Можна додати перевірку, чи потрібно заповнювати БД
+    if not seed_database():
+        logging.warning("Не вдалося заповнити базу даних тестовими даними. Продовження роботи...")
+        # Не критична помилка, можна продовжити
+
+    # 4. Запуск веб-інтерфейсу
+    if not start_web_interface():
+        logging.critical("Не вдалося запустити веб-інтерфейс. Система не може працювати.")
+        sys.exit(1)
+    else:
+        # Цей блок коду, ймовірно, ніколи не виконається, оскільки start_web_interface() запускає блокуючий сервер
+        logging.info("Веб-інтерфейс запущено (теоретично). Скрипт start_system.py завершує роботу.")
+
+if __name__ == "__main__":
+    logging.info(f"Запуск скрипта start_system.py як головного (__name__ == '__main__')")
+    main()
+    logging.info("Скрипт start_system.py завершив свою роботу.") # Цей лог може не з'явитися, якщо сервер блокує
 
 def check_dependencies():
     """Перевірка наявності всіх необхідних залежностей"""
@@ -296,4 +369,3 @@ def start_system():
 
 if __name__ == '__main__':
     # Перевірка прав адміністратора видалена
-    start_system()

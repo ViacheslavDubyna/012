@@ -1,87 +1,115 @@
-/* Основні стилі для системи ДПСУ */
-body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #f8f9fa;
+/**
+ * Основні стилі для інформаційно-аналітичної системи НГУ
+ */
+
+:root {
+    --ngu-primary: #1b3a1b;    /* Темно-зелений - основний колір НГУ */
+    --ngu-secondary: #2c5e2c;  /* Середньо-зелений */
+    --ngu-accent: #FFD700;     /* Золотий - акцентний колір */
+    --ngu-light: #f8f9fa;      /* Світлий фон */
+    --ngu-dark: #212529;       /* Темний текст */
 }
 
+/* Загальні стилі */
+body {
+    font-family: 'Roboto', 'Arial', sans-serif;
+    color: var(--ngu-dark);
+    background-color: #f5f5f5;
+}
+
+/* Навігаційна панель */
 .navbar {
+    background-color: var(--ngu-primary);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.card {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s;
+.navbar-brand {
+    font-weight: bold;
+    color: var(--ngu-accent) !important;
 }
 
-.card:hover {
-    transform: translateY(-5px);
+.nav-link {
+    color: white !important;
+    font-weight: 500;
 }
 
-/* Стилі для карти */
-#map-container, .map-container {
-    height: 500px;
+.nav-link.active {
+    color: var(--ngu-accent) !important;
+    font-weight: 700;
+}
+
+/* Емблема НГУ */
+.ngu-emblem-small {
+    width: 80px;
+    height: 80px;
+}
+
+/* Карта */
+#map-container, #prediction-map-container, #incidents-map-container {
     width: 100%;
-    border-radius: 8px;
+    height: 400px;
+    border-radius: 4px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    margin-bottom: 20px;
+    margin-top: 15px;
 }
 
-#map, #incidents-map {
-    height: 100%;
+#map, #prediction-map, #incidents-map {
     width: 100%;
+    height: 100%;
 }
 
-/* Стилі для маркерів на карті */
-.incident-marker {
-    border-radius: 50%;
-    width: 12px;
-    height: 12px;
-    background-color: red;
-    border: 2px solid white;
-}
-
-.checkpoint-marker {
-    border-radius: 50%;
-    width: 12px;
-    height: 12px;
-    background-color: blue;
-    border: 2px solid white;
-}
-
-/* Стилі для панелі статистики */
+/* Панелі статистики */
 .stats-panel {
     background-color: white;
     border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    height: 100%;
 }
 
 .stats-panel h3 {
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+    color: var(--ngu-primary);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
-/* Стилі для графіків */
-.chart-container {
+.stats-panel h5 {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.stats-panel h2 {
+    color: var(--ngu-primary);
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* Список інцидентів */
+.incident-list-container {
     background-color: white;
     border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    height: 100%;
 }
 
-/* Стилі для списку інцидентів */
+.incident-list-container h3 {
+    color: var(--ngu-primary);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
 .incident-list {
     max-height: 300px;
     overflow-y: auto;
 }
 
 .incident-item {
-    padding: 10px;
+    padding: 10px 0;
     border-bottom: 1px solid #eee;
 }
 
@@ -89,34 +117,94 @@ body {
     border-bottom: none;
 }
 
-.incident-item .badge {
-    margin-left: 5px;
+.incident-title {
+    font-weight: 600;
+    margin-bottom: 5px;
 }
 
-/* Стилі для прогнозу загроз */
-.threat-forecast {
-    background-color: white;
+.incident-meta {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.incident-priority-high {
+    color: #dc3545;
+}
+
+.incident-priority-medium {
+    color: #fd7e14;
+}
+
+.incident-priority-low {
+    color: #20c997;
+}
+
+/* Картки */
+.card {
+    border: none;
     border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.threat-level {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    margin-right: 5px;
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.threat-low {
-    background-color: green;
+.card-title {
+    color: var(--ngu-primary);
+    font-weight: 600;
 }
 
-.threat-medium {
-    background-color: orange;
+/* Кнопки */
+.btn-primary {
+    background-color: var(--ngu-primary);
+    border-color: var(--ngu-primary);
 }
 
-.threat-high {
-    background-color: red;
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--ngu-secondary);
+    border-color: var(--ngu-secondary);
+}
+
+.btn-outline-primary {
+    color: var(--ngu-primary);
+    border-color: var(--ngu-primary);
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus {
+    background-color: var(--ngu-primary);
+    border-color: var(--ngu-primary);
+}
+
+/* Футер */
+footer {
+    background-color: var(--ngu-light) !important;
+    color: var(--ngu-dark);
+    font-size: 0.9rem;
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+    .ngu-emblem-small {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .display-5 {
+        font-size: 1.8rem;
+    }
+    
+    .lead {
+        font-size: 1rem;
+    }
+    
+    .stats-panel h2 {
+        font-size: 1.5rem;
+    }
+    
+    #map-container, #prediction-map-container, #incidents-map-container {
+        height: 300px;
+    }
 }
