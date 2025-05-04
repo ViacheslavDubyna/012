@@ -1,8 +1,9 @@
 /**
- * Скрипт для відображення прогнозів перетину кордону
+ * Скрипт для відображення прогнозів інцидентів громадської безпеки
  * 
  * Цей файл містить функції для отримання та відображення графіків
- * прогнозів перетину кордону на наступний тиждень та місяць
+ * прогнозів інцидентів громадської безпеки на наступний тиждень та місяць
+ * для Національної гвардії України
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -16,10 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Завантаження даних тижневого прогнозу
+ * Завантаження даних тижневого прогнозу інцидентів
  */
 function loadWeeklyPrediction() {
-    fetch('/api/border_crossing_weekly_prediction')
+    fetch('/api/incidents_weekly_prediction')
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
@@ -35,10 +36,10 @@ function loadWeeklyPrediction() {
 }
 
 /**
- * Завантаження даних місячного прогнозу
+ * Завантаження даних місячного прогнозу інцидентів
  */
 function loadMonthlyPrediction() {
-    fetch('/api/border_crossing_monthly_prediction')
+    fetch('/api/incidents_monthly_prediction')
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
@@ -78,24 +79,24 @@ function renderWeeklyPredictionChart(data) {
             labels: data.dates,
             datasets: [
                 {
-                    label: 'Громадяни України',
-                    data: data.ukrainian_citizens,
+                    label: 'Порушення громадського порядку',
+                    data: data.public_order_incidents,
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     tension: 0.4,
                     fill: true
                 },
                 {
-                    label: 'Іноземні громадяни',
-                    data: data.foreign_citizens,
+                    label: 'Охорона об\'єктів',
+                    data: data.security_incidents,
                     borderColor: 'rgba(255, 99, 132, 1)',
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     tension: 0.4,
                     fill: true
                 },
                 {
-                    label: 'Транспортні засоби',
-                    data: data.vehicles,
+                    label: 'Масові заходи',
+                    data: data.mass_events,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     tension: 0.4,
@@ -108,7 +109,7 @@ function renderWeeklyPredictionChart(data) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Прогноз перетинів кордону на наступний тиждень'
+                    text: 'Прогноз інцидентів громадської безпеки на наступний тиждень'
                 },
                 tooltip: {
                     mode: 'index',
@@ -159,24 +160,24 @@ function renderMonthlyPredictionChart(data) {
             labels: data.dates,
             datasets: [
                 {
-                    label: 'Громадяни України',
-                    data: data.ukrainian_citizens,
+                    label: 'Порушення громадського порядку',
+                    data: data.public_order_incidents,
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     tension: 0.4,
                     fill: true
                 },
                 {
-                    label: 'Іноземні громадяни',
-                    data: data.foreign_citizens,
+                    label: 'Охорона об\'єктів',
+                    data: data.security_incidents,
                     borderColor: 'rgba(255, 99, 132, 1)',
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     tension: 0.4,
                     fill: true
                 },
                 {
-                    label: 'Транспортні засоби',
-                    data: data.vehicles,
+                    label: 'Масові заходи',
+                    data: data.mass_events,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     tension: 0.4,
