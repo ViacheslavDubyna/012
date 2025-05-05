@@ -12,7 +12,7 @@ import logging
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from data_collector import run_data_collection
+from .data_collector import run_data_collection
 
 # Налаштування логування
 logging.basicConfig(

@@ -53,15 +53,15 @@ body {
 }
 
 /* Емблема НГУ */
-.ngu-emblem-small {
-    width: 24px;
-    height: 24px;
+.ngu-emblem.svg {
+    width: 7px;
+    height: 7px;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     transition: transform 0.3s ease;
 }
 
-.ngu-emblem-small:hover {
-    transform: scale(1.05);
+.nngu-emblem.svg {
+    transform: scale(0.14);
 }
 
 /* Карта */
@@ -370,7 +370,7 @@ footer a {
 }
 
 footer a:hover {
-    color: white;
+    color: rgb(42, 90, 38);
     text-decoration: underline;
 }
 
