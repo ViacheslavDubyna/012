@@ -2,48 +2,67 @@
 
 /* Стилі для карти інцидентів */
 .map-container {
-    border: 1px solid #07050f;
-    border-radius: 4px;
+    border: 2px solid var(--ngu-primary);  /* Замінив var(--ngu-dark) на основний колір для покращення контрасту */
+    border-radius: 8px; /* Збільшено радіус для більш округлих кутів */
     overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Додано тінь для покращення вигляду */
 }
 
 .incident-marker {
     border-radius: 50%;
-    width: 12px;
-    height: 12px;
+    width: 16px;  /* Збільшено розмір маркерів для кращої видимості */
+    height: 16px;
     display: block;
+    background-color: var(--ngu-accent); /* Додано колір для маркерів */
 }
 
 .incident-marker div {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    border: 1px solid #333;
+    border: 1px solid var(--ngu-dark);
+    background-color: var(--ngu-light);  /* Додано фоновий колір */
 }
 
 /* Стилі для легенди карти */
 .info.legend {
-    background-color: rgb(237, 36, 36);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    background-color: var(--ngu-accent);
+    padding: 12px;
+    border-radius: 8px;  /* Збільшено радіус для кращої вигляду */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* Підвищено інтенсивність тіні */
 }
 
 .info.legend h6 {
     margin-top: 0;
-    margin-bottom: 8px;
+    margin-bottom: 10px; /* Збільшено відстань для кращої читаємості */
+    color: var(--ngu-dark);  /* Додано колір для тексту */
 }
 
 /* Стилі для фільтрів */
 .filter-card {
-    margin-bottom: 20px;
+    margin-bottom: 25px; /* Збільшено відстань між картками */
+    padding: 20px;
+    border: 2px solid var(--ngu-primary); /* Додано рамку для чіткості */
+    border-radius: 8px; /* Збільшено радіус */
+    background-color: var(--ngu-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Додано тінь */
+    transition: all 0.3s ease; /* Плавний перехід */
+}
+
+.filter-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Підвищено ефект тіні при наведенні */
+    transform: translateY(-5px); /* Додано ефект підйому */
 }
 
 /* Стилі для списку інцидентів */
 .list-group-item {
-    transition: background-color 0.2s;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Збільшено час анімації */
+    padding: 12px 16px;  /* Додано відступи для зручності */
+    border-left: 4px solid var(--ngu-primary); /* Додано лінію зліва */
 }
 
 .list-group-item:hover {
-    background-color: #f8f9fa;
+    background-color: rgba(255, 215, 0, 0.1); /* Додано жовту підсвітку */
+    transform: translateX(5px);  /* Додано легкий зсув */
+    border-left: 4px solid var(--ngu-accent);  /* Заміна кольору лінії */
 }

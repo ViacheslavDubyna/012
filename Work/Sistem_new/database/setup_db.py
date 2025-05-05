@@ -21,7 +21,7 @@ DB_PARAMS = {
     'password': 'postgres',
     'host': 'localhost',
     'port': '5432',
-    'client_encoding': 'UTF8'
+    'client_encoding': 'utf-8'
 }
 
 # SQL-запити для створення таблиць
