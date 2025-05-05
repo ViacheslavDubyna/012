@@ -1,0 +1,105 @@
+/* Стилі для системи підтримки прийняття рішень ГУ НГУ */
+
+/* Загальні стилі */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* Стилі для заголовків */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+}
+
+/* Стилі для карток */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header h2 {
+    margin-bottom: 0;
+    font-size: 1.5rem;
+}
+
+/* Стилі для рівнів загрози */
+.threat-level-1 {
+    background-color: #28a745;
+    color: white;
+}
+
+.threat-level-2 {
+    background-color: #5cb85c;
+    color: white;
+}
+
+.threat-level-3 {
+    background-color: #ffc107;
+    color: black;
+}
+
+.threat-level-4 {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.threat-level-5 {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Стилі для графіків */
+canvas {
+    max-height: 300px;
+}
+
+/* Стилі для таблиць */
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Стилі для форми моделювання */
+#scenario-form {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+#intensity-value {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* Стилі для рекомендованих дій */
+.list-group-item {
+    border-left: 4px solid #007bff;
+}
+
+.list-group-item.high-priority {
+    border-left-color: #dc3545;
+}
+
+.list-group-item.medium-priority {
+    border-left-color: #ffc107;
+}
+
+.list-group-item.low-priority {
+    border-left-color: #28a745;
+}
+
+/* Адаптивність для мобільних пристроїв */
+@media (max-width: 768px) {
+    .card-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    h3 {
+        font-size: 1.1rem;
+    }
+    
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}

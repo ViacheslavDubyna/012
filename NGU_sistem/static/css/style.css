@@ -2,7 +2,7 @@
 
 /* Стилі для карти інцидентів */
 .map-container {
-    border: 1px solid #ddd;
+    border: 1px solid #07050f;
     border-radius: 4px;
     overflow: hidden;
 }
@@ -23,7 +23,7 @@
 
 /* Стилі для легенди карти */
 .info.legend {
-    background-color: white;
+    background-color: rgb(237, 36, 36);
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 0 15px rgba(0,0,0,0.2);

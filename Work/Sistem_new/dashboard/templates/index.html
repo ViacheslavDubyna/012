@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система підтримки прийняття рішень ГУ НГУ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">ІАС ГУ НГУ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Головна</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#operational-situation">Оперативна обстановка</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#casualties">Втрати</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#predictions">Прогнози</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#decisions">Рішення</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4">Система підтримки прийняття рішень ГУ НГУ</h1>
+                <p class="lead text-center">Аналіз та прогнозування бойових безповоротних та санітарних втрат серед особового складу НГУ</p>
+            </div>
+        </div>
+
+        <!-- Оперативна обстановка -->
+        <section id="operational-situation" class="mt-5">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2>Оперативна обстановка</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>Поточна ситуація</h3>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Локація</th>
+                                            <th>Опис</th>
+                                            <th>Рівень загрози</th>
+                                            <th>Час</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="operational-data">
+                                        <!-- Дані будуть додані через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>Карта загроз</h3>
+                            <div id="threat-map" style="height: 400px; background-color: #eee;">
+                                <!-- Тут буде карта -->
+                                <p class="text-center pt-5">Інтерактивна карта загроз</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Втрати -->
+        <section id="casualties" class="mt-5">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h2>Аналіз втрат</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>Втрати за локаціями</h3>
+                            <canvas id="location-casualties-chart"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>Втрати за часом</h3>
+                            <canvas id="time-casualties-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h3>Втрати за підрозділами</h3>
+                            <canvas id="unit-casualties-chart"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>Типи інцидентів</h3>
+                            <canvas id="incident-types-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Прогнози -->
+        <section id="predictions" class="mt-5">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h2>Прогнози та моделювання</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>Прогноз загроз</h3>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Локація</th>
+                                            <th>Тип загрози</th>
+                                            <th>Ймовірність (%)</th>
+                                            <th>Можливі втрати</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="threat-predictions">
+                                        <!-- Дані будуть додані через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>Моделювання сценаріїв</h3>
+                            <div class="card">
+                                <div class="card-body">
+                                    <form id="scenario-form">
+                                        <div class="mb-3">
+                                            <label for="location" class="form-label">Локація</label>
+                                            <select class="form-select" id="location">
+                                                <option value="Харків">Харків</option>
+                                                <option value="Донецьк">Донецьк</option>
+                                                <option value="Луганськ">Луганськ</option>
+                                                <option value="Запоріжжя">Запоріжжя</option>
+                                                <option value="Херсон">Херсон</option>
+                                                <option value="Миколаїв">Миколаїв</option>
+                                                <option value="Суми">Суми</option>
+                                                <option value="Чернігів">Чернігів</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="threat-type" class="form-label">Тип загрози</label>
+                                            <select class="form-select" id="threat-type">
+                                                <option value="artillery">Артилерійський обстріл</option>
+                                                <option value="rocket">Ракетний удар</option>
+                                                <option value="drone">Атака БПЛА</option>
+                                                <option value="mortar">Мінометний обстріл</option>
+                                                <option value="sniper">Снайперський вогонь</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="intensity" class="form-label">Інтенсивність (1-10)</label>
+                                            <input type="range" class="form-range" id="intensity" min="1" max="10" value="5">
+                                            <div class="text-center" id="intensity-value">5</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Моделювати</button>
+                                    </form>
+                                    <div class="mt-3" id="scenario-result">
+                                        <!-- Результати моделювання -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Рішення -->
+        <section id="decisions" class="mt-5 mb-5">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h2>Підтримка прийняття рішень</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>Рекомендовані дії</h3>
+                            <div class="list-group" id="recommended-actions">
+                                <!-- Дані будуть додані через JavaScript -->
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>Журнал рішень</h3>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Час</th>
+                                            <th>Рішення</th>
+                                            <th>Дія</th>
+                                            <th>Результат</th>
+                                            <th>Ефективність</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="decisions-log">
+                                        <!-- Дані будуть додані через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-3">
+        <div class="container">
+            <p class="mb-0">© 2023 Система підтримки прийняття рішень ГУ НГУ</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
