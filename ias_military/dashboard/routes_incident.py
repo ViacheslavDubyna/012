@@ -6,6 +6,7 @@ import json
 import datetime
 import sys
 import os
+import pandas as pd
 
 # Додаємо шлях до батьківської директорії в sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,7 +21,8 @@ analytics = NGUAnalytics()
 def incident_management():
     """Сторінка управління інцидентами"""
     # Отримуємо дані про інциденти
-    incidents_df = analytics.get_incident_data()
+    incidents_query = analytics.session.query(analytics.Incident)
+    incidents_df = pd.read_sql(incidents_query.statement, analytics.engine)
     
     # Перетворюємо дані для відображення на графіках
     incidents_by_type = incidents_df.groupby('type').size().to_dict()
@@ -40,7 +42,8 @@ def incident_management():
 @dashboard.route('/api/dashboard/incidents', methods=['GET'])
 def get_incidents():
     """API ендпоінт для отримання списку інцидентів"""
-    incidents_df = analytics.get_incident_data()
+    incidents_query = analytics.session.query(analytics.Incident)
+    incidents_df = pd.read_sql(incidents_query.statement, analytics.engine)
     return jsonify(incidents_df.to_dict('records'))
 
 @dashboard.route('/api/dashboard/incidents/<int:incident_id>', methods=['GET'])

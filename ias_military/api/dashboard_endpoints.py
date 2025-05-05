@@ -11,7 +11,7 @@ import random
 # Ініціалізуємо аналітичний модуль
 analytics = NGUAnalytics()
 
-@app.route('/api/dashboard/statistics', methods=['GET'])
+@app.route('/dashboard/statistics', methods=['GET'])
 def get_dashboard_statistics():
     """Отримання загальної статистики для головної сторінки дашборду"""
     try:
@@ -42,7 +42,7 @@ def get_dashboard_statistics():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/incidents/recent', methods=['GET'])
+@app.route('/incidents/recent', methods=['GET'])
 def get_recent_incidents():
     """Отримання останніх інцидентів"""
     try:
@@ -68,7 +68,7 @@ def get_recent_incidents():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/analytics/threat-level-history', methods=['GET'])
+@app.route('/analytics/threat-level-history', methods=['GET'])
 def get_threat_level_history():
     """Отримання історії рівня загрози"""
     try:
@@ -97,7 +97,7 @@ def get_threat_level_history():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/resources/distribution', methods=['GET'])
+@app.route('/resources/distribution', methods=['GET'])
 def get_resources_distribution():
     """Отримання даних про розподіл ресурсів для візуалізації"""
     try:
@@ -179,7 +179,7 @@ def get_resource_distribution():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/analytics/predictions', methods=['GET'])
+@app.route('/analytics/predictions', methods=['GET'])
 def get_ai_predictions():
     """Отримання прогнозів AI-моделей"""
     try:
@@ -206,7 +206,7 @@ def get_ai_predictions():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/situations/map-data', methods=['GET'])
+@app.route('/situations/map-data', methods=['GET'])
 def get_map_data():
     """Отримання даних для карти оперативної обстановки"""
     try:
@@ -237,7 +237,7 @@ def get_map_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/units', methods=['GET'])
+@app.route('/units', methods=['GET'])
 def get_units():
     """Отримання списку підрозділів НГУ"""
     try:
@@ -259,7 +259,7 @@ def get_units():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/resources', methods=['GET'])
+@app.route('/resources', methods=['GET'])
 def get_resources():
     """Отримання списку ресурсів"""
     try:
@@ -312,7 +312,7 @@ def get_resources():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/resources/charts-data', methods=['GET'])
+@app.route('/resources-charts-data', methods=['GET'])
 def get_resources_charts_data():
     """Отримання даних для графіків розподілу ресурсів"""
     try:
@@ -345,7 +345,7 @@ def get_resources_charts_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/resource-allocations', methods=['GET'])
+@app.route('/resource-allocations', methods=['GET'])
 def get_resource_allocations():
     """Отримання списку розподілів ресурсів"""
     try:
@@ -387,7 +387,7 @@ def get_resource_allocations():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/situations', methods=['GET'])
+@app.route('/situations', methods=['GET'])
 def get_situations():
     """Отримання списку оперативних ситуацій"""
     try:

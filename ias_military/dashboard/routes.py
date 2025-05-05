@@ -1,6 +1,6 @@
 # Маршрути дашборду для інформаційно-аналітичної системи Національної гвардії України
 
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, current_app
 import json
 import datetime
 import sys
@@ -21,7 +21,8 @@ dashboard = Blueprint('dashboard', __name__, template_folder='templates/dashboar
 @dashboard.route('/')
 def index():
     try:
-        return render_template('index.html')
+        system_data = {}  # TODO: отримати дані з бази або моделі
+        return render_template('index.html', system_data=system_data)
     except TemplateNotFound:
         current_app.logger.error('Відсутній шаблон: index.html')
         return 'Шаблон не знайдено', 404
@@ -29,7 +30,8 @@ def index():
 @dashboard.route('/threat-analysis')
 def threat_analysis():
     try:
-        return render_template('threat_analysis.html')
+        system_data = {}  # TODO: отримати дані з бази або моделі
+        return render_template('threat_analysis.html', system_data=system_data)
     except TemplateNotFound:
         current_app.logger.error('Відсутній шаблон: threat_analysis.html')
         return 'Шаблон аналізу загроз не знайдено', 404
@@ -51,7 +53,7 @@ def predict_resources_dashboard():
                 'Терористична загроза': data.get('terrorist_threat', 0),
                 'Диверсія': data.get('sabotage', 0),
                 'Масові заворушення': data.get('mass_riots', 0),
-                'Блокування обєктів': data.get('object_blocking', 0)
+                'Блокування об\'єктів': data.get('object_blocking', 0)
             },
             avg_severity=data.get('avg_severity', 0),
             total_casualties=data.get('total_casualties', 0),

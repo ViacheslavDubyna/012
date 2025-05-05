@@ -14,7 +14,7 @@
 body {
     font-family: 'Roboto', 'Arial', sans-serif;
     color: var(--ngu-dark);
-    background-color: #f5f5f5;
+    background-color: var(--ngu-light);
 }
 
 /* Навігаційна панель */
@@ -141,20 +141,33 @@ body {
 
 /* Картки */
 .card {
-    border: none;
+    background-color: var(--ngu-light);
+    border: 1px solid var(--ngu-primary);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(27, 58, 27, 0.05);
     transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .card-title {
     color: var(--ngu-primary);
     font-weight: 600;
+}
+
+.card-body {
+    background-color: var(--ngu-light);
+    color: var(--ngu-dark);
+}
+
+.list-group-item {
+    background-color: var(--ngu-light);
+    color: var(--ngu-dark);
+    border-color: var(--ngu-primary);
+    transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: var(--ngu-accent);
+    color: var(--ngu-dark);
 }
 
 /* Кнопки */

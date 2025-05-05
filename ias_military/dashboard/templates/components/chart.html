@@ -1,41 +1,42 @@
 {% macro render_chart(chart_id, chart_type, chart_data, chart_options={}) %}
-{% if not chart_id %}
-  {{ throw('Параметр chart_id обов'язковий для макросу render_chart') }}
-{% endif %}
-{% if not chart_type %}
-  {{ throw('Параметр chart_type обов'язковий для макросу render_chart') }}
-{% endif %}
-<div class="chart-container">
-  <canvas id="{{ chart_id }}"></canvas>
-</div>
-
-<script>
-  function initChart() {
-    if (!document.getElementById('{{ chart_id }}')) return;
-    const ctx = document.getElementById('{{ chart_id }}');
-    
-    const options = Object.assign({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom' },
-        tooltip: { enabled: true }
+  {% if not chart_id %}
+    <div style="color:red">Параметр <code>chart_id</code> обов'язковий для макросу <code>render_chart</code></div>
+  {% elif not chart_type %}
+    <div style="color:red">Параметр <code>chart_type</code> обов'язковий для макросу <code>render_chart</code></div>
+  {% else %}
+  <div class="chart-container" style="position: relative; height:400px;">
+    <canvas id="{{ chart_id }}"></canvas>
+  </div>
+  <script>
+    (function() {
+      const chartId = '{{ chart_id }}';
+      const chartType = '{{ chart_type }}';
+      const chartData = {{ chart_data | tojson | safe }};
+      const chartOptions = Object.assign({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { enabled: true }
+        }
+      }, {{ chart_options | tojson | safe }});
+      function initChart() {
+        const ctx = document.getElementById(chartId);
+        if (!ctx) return;
+        new Chart(ctx, {
+          type: chartType,
+          data: chartData,
+          options: chartOptions
+        });
       }
-    }, {{ chart_options|default({})|tojson|safe }});
-
-    new Chart(ctx, {
-      type: '{{ chart_type }}',
-      data: {{ chart_data|tojson|safe }},
-      options: options
-    });
-  }
-  
-  if (document.readyState === 'complete') {
-    initChart();
-  } else {
-    document.addEventListener('DOMContentLoaded', initChart);
-    window.chartInitializers = window.chartInitializers || [];
-    window.chartInitializers.push(initChart);
-  }
-</script>
+      if (document.readyState === 'complete') {
+        initChart();
+      } else {
+        document.addEventListener('DOMContentLoaded', initChart);
+        window.chartInitializers = window.chartInitializers || [];
+        window.chartInitializers.push(initChart);
+      }
+    })();
+  </script>
+  {% endif %}
 {% endmacro %}

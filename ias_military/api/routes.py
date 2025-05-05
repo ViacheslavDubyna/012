@@ -1,14 +1,14 @@
-# API маршрути для інформаційно-аналітичної системи Національної гвардії України
+# Маршрути API для інформаційно-аналітичної системи Національної гвардії України
 
-from flask import request, jsonify
-from . import app
-from .analytics import NGUAnalytics
+from flask import Blueprint, request, jsonify, current_app
+from api.analytics import NGUAnalytics
 
-# Ініціалізуємо аналітичний модуль
+app = Blueprint('api', __name__)
 analytics = NGUAnalytics()
 
+# Прогнозування рівня загрози
 @app.route('/api/analytics/threat-prediction', methods=['POST'])
-def predict_threat():
+def threat_prediction():
     """Ендпоінт для прогнозування рівня загрози"""
     data = request.get_json()
     
@@ -101,8 +101,9 @@ def predict_threat():
     except Exception as e:
         return jsonify({'error': f'Помилка при прогнозуванні: {str(e)}'}), 500
 
+# Прогнозування потреби у ресурсах
 @app.route('/api/analytics/resource-prediction', methods=['POST'])
-def predict_resources():
+def resource_prediction():
     """Ендпоінт для прогнозування потреб у ресурсах"""
     data = request.get_json()
     
@@ -147,8 +148,9 @@ def predict_resources():
     except Exception as e:
         return jsonify({'error': f'Помилка при прогнозуванні ресурсів: {str(e)}'}), 500
 
+# Тренди інцидентів
 @app.route('/api/analytics/incident-trends', methods=['GET'])
-def get_incident_trends():
+def incident_trends():
     """Ендпоінт для отримання трендів інцидентів"""
     days = request.args.get('days', default=30, type=int)
     
@@ -158,8 +160,9 @@ def get_incident_trends():
     except Exception as e:
         return jsonify({'error': f'Помилка при аналізі трендів: {str(e)}'}), 500
 
+# Ефективність прийняття рішень
 @app.route('/api/analytics/decision-effectiveness', methods=['GET'])
-def get_decision_effectiveness():
+def decision_effectiveness():
     """Ендпоінт для отримання ефективності рішень"""
     days = request.args.get('days', default=30, type=int)
     
@@ -169,6 +172,7 @@ def get_decision_effectiveness():
     except Exception as e:
         return jsonify({'error': f'Помилка при оцінці ефективності: {str(e)}'}), 500
 
+# Тренування моделей
 @app.route('/api/analytics/train-models', methods=['POST'])
 def train_models():
     """Ендпоінт для навчання моделей"""
@@ -187,6 +191,7 @@ def train_models():
     except Exception as e:
         return jsonify({'error': f'Помилка при навчанні моделей: {str(e)}'}), 500
 
+# Завантаження моделей
 @app.route('/api/analytics/load-models', methods=['POST'])
 def load_models():
     """Ендпоінт для завантаження моделей"""

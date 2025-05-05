@@ -15,7 +15,7 @@ from api.analytics import NGUAnalytics
 # Ініціалізуємо аналітичний модуль
 analytics = NGUAnalytics()
 
-@dashboard.route('/prediction-tools')
+@dashboard.route('/prediction-tools', methods=['GET'])
 def prediction_tools():
     """Сторінка інструментів прогнозування"""
     try:
@@ -23,7 +23,7 @@ def prediction_tools():
     except Exception as e:
         return f'Помилка при завантаженні сторінки інструментів прогнозування: {str(e)}', 500
 
-@dashboard.route('/resource-management')
+@dashboard.route('/resource-management', methods=['GET'])
 def resource_management():
     """Сторінка управління ресурсами"""
     try:

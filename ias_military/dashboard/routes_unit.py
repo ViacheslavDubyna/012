@@ -20,7 +20,9 @@ analytics = NGUAnalytics()
 def unit_management():
     """Сторінка управління підрозділами"""
     # Отримуємо дані про підрозділи
-    units_df = analytics.session.query(analytics.session.query(analytics.NGUUnit).statement, analytics.engine)
+    units_query = analytics.session.query(analytics.NGUUnit)
+    import pandas as pd
+    units_df = pd.read_sql(units_query.statement, analytics.engine)
     
     # Перетворюємо дані для відображення на графіках
     units_by_type = units_df.groupby('type').size().to_dict()
@@ -36,7 +38,9 @@ def unit_management():
 @dashboard.route('/api/dashboard/units', methods=['GET'])
 def get_units():
     """API ендпоінт для отримання списку підрозділів"""
-    units_df = analytics.session.query(analytics.session.query(analytics.NGUUnit).statement, analytics.engine)
+    units_query = analytics.session.query(analytics.NGUUnit)
+    import pandas as pd
+    units_df = pd.read_sql(units_query.statement, analytics.engine)
     return jsonify(units_df.to_dict('records'))
 
 @dashboard.route('/api/dashboard/units/<int:unit_id>', methods=['GET'])

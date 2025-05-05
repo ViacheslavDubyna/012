@@ -42,9 +42,29 @@ def create_app(disable_ml=False):
     return app
 
 def init_db():
-    """Ініціалізація бази даних"""
+    from sqlalchemy import create_engine, text
+    import os
+    DB_URL = os.environ.get('DB_URL', 'postgresql://postgres:postgres@localhost:5432/ngu_ias')
     engine = create_engine(DB_URL)
+    # Перевіряємо, чи є таблиці в базі
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"))
+        table_count = result.scalar()
+        if table_count == 0:
+            # Якщо таблиць немає, виконуємо init_db.sql
+            sql_path = os.path.join(os.path.dirname(__file__), 'database', 'init_db.sql')
+            with open(sql_path, 'r', encoding='utf-8') as f:
+                sql = f.read()
+            for statement in sql.split(';'):
+                stmt = statement.strip()
+                if stmt:
+                    conn.execute(text(stmt))
+            print('Базу даних ініціалізовано через init_db.sql')
+    # Далі стандартна ініціалізація моделей
+    from database.models import Base
     Base.metadata.create_all(engine)
+    from database.seed import seed_database
+    seed_database(DB_URL)
     logging.info("База даних успішно ініціалізована.") # Змінено print на logging
 
 def seed_db():

@@ -21,8 +21,8 @@ openpyxl==3.0.9
 xlrd==2.0.1
 
 # Для ML моделей
-tensorflow==2.7.0
-keras==2.7.0
+tensorflow==2.15.0
+keras==2.15.0
 
 # Утиліти
 python-dotenv==0.19.1

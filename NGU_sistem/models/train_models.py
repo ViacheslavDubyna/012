@@ -13,8 +13,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, mean_absolute_error, classification_report
 
-from ias_DPSU.models.predictors import IncidentPredictor, BorderCrossingPredictor, ResourcePredictor
-from ias_DPSU.database.generate_test_data import (
+from .predictors import IncidentPredictor, BorderCrossingPredictor, ResourcePredictor
+from database.generate_test_data import (
     generate_training_data_for_incident_predictor,
     generate_training_data_for_border_crossing_predictor,
     generate_training_data_for_resource_predictor

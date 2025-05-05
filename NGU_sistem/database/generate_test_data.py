@@ -15,8 +15,8 @@ from datetime import datetime, timedelta
 from faker import Faker
 from werkzeug.security import generate_password_hash
 
-from ias_DPSU.database.models import Incident, BorderCrossing, User, Report
-from ias_DPSU.database import db
+from database.models import Incident, BorderCrossing, User, Report
+from database import db
 
 # Ініціалізація генератора фейкових даних
 fake = Faker('uk_UA')
@@ -332,7 +332,7 @@ def generate_training_data_for_border_crossing_predictor(count=1000):
         'день_тижня': np.random.randint(0, 7, count),  # 0-6 (пн-нд)
         'місяць': np.random.randint(1, 13, count),  # 1-12
         'пункт_пропуску_id': np.random.randint(0, len(CHECKPOINTS), count),
-        'напрямок': np.random.choice([0, 1], count),  # 0 - в'їзд, 1 - виїзд
+        'напрямок': np.random.choice([0, 1], count),  # 0 - в'їзд', 1 - виїзд
         'свято': np.random.choice([0, 1], count, p=[0.9, 0.1]),
         'вихідний': np.random.choice([0, 1], count, p=[0.7, 0.3]),
         'середня_кількість_за_7днів': np.random.normal(1000, 200, count)

@@ -14,7 +14,7 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
 
-from ias_DPSU.models import load_model, save_model
+from . import load_model, save_model
 
 
 class IncidentPredictor:

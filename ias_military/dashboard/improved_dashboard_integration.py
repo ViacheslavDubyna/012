@@ -18,7 +18,7 @@ import os
 app = dash.Dash(
     __name__,
     # server=False, # Видалено, оскільки init_app буде використано
-    routes_pathname_prefix='/dashboard/improved/',
+    routes_pathname_prefix='/',
     requests_pathname_prefix='/dashboard/improved/',
     meta_tags=[
         {"name": "viewport", "content": "width=device-width, initial-scale=1.0"}
@@ -964,8 +964,3 @@ def update_ai_predictions(n):
         ]))
     
     return prediction_cards
-
-# НЕ ЗАПУСКАЄМО app.run_server() тут, оскільки інтеграція здійснюється через DispatcherMiddleware у Flask
-if __name__ == '__main__':
-    app.run_server(debug=True, port=8050)
-    print("Сервер запущено. Відкрийте http://127.0.0.1:8050/ у вашому браузері.")

@@ -15,7 +15,7 @@ from api.analytics import NGUAnalytics
 # Ініціалізуємо аналітичний модуль
 analytics = NGUAnalytics()
 
-@dashboard.route('/decision-effectiveness')
+@dashboard.route('/decision-effectiveness', methods=['GET'])
 def decision_effectiveness():
     """Сторінка підтримки прийняття рішень"""
     try:
@@ -23,7 +23,7 @@ def decision_effectiveness():
     except Exception as e:
         return f'Помилка при завантаженні сторінки підтримки прийняття рішень: {str(e)}', 500
 
-@dashboard.route('/settings')
+@dashboard.route('/settings', methods=['GET'])
 def settings():
     """Сторінка налаштувань системи"""
     try:
