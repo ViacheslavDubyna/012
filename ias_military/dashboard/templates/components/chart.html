@@ -1,42 +1,49 @@
 {% macro render_chart(chart_id, chart_type, chart_data, chart_options={}) %}
-  {% if not chart_id %}
+  {% if chart_id is none %}
     <div style="color:red">Параметр <code>chart_id</code> обов'язковий для макросу <code>render_chart</code></div>
-  {% elif not chart_type %}
+  {% elif chart_type is none %}
     <div style="color:red">Параметр <code>chart_type</code> обов'язковий для макросу <code>render_chart</code></div>
   {% else %}
-  <div class="chart-container" style="position: relative; height:400px;">
-    <canvas id="{{ chart_id }}"></canvas>
-  </div>
-  <script>
-    (function() {
-      const chartId = '{{ chart_id }}';
-      const chartType = '{{ chart_type }}';
-      const chartData = {{ chart_data | tojson | safe }};
-      const chartOptions = Object.assign({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' },
-          tooltip: { enabled: true }
+    <div class="chart-container" style="position: relative; height:400px;">
+      <canvas id="{{ chart_id }}"></canvas>
+    </div>
+    <script>
+      (function() {
+        const chartId = "{{ chart_id }}";  // ✅ Рядок 14 — вставка як JS-рядок
+        const chartType = "{{ chart_type }}";
+
+        // ✅ Рядок 22 — chart_data як JSON (тільки якщо chart_data — Python dict або list)
+        const chartData = {{ chart_data | tojson | safe }};
+
+        const chartOptions = Object.assign({
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { enabled: true }
+          }
+        }, {{ chart_options | tojson | safe }});
+
+        function initChart() {
+          const ctx = document.getElementById(chartId);
+          if (!ctx) return;
+          new Chart(ctx, {
+            type: chartType,
+            data: chartData,
+            options: chartOptions
+          });
         }
-      }, {{ chart_options | tojson | safe }});
-      function initChart() {
-        const ctx = document.getElementById(chartId);
-        if (!ctx) return;
-        new Chart(ctx, {
-          type: chartType,
-          data: chartData,
-          options: chartOptions
-        });
-      }
-      if (document.readyState === 'complete') {
-        initChart();
-      } else {
-        document.addEventListener('DOMContentLoaded', initChart);
-        window.chartInitializers = window.chartInitializers || [];
-        window.chartInitializers.push(initChart);
-      }
-    })();
-  </script>
+
+        if (document.readyState === 'complete') {
+          initChart();
+        } else {
+          document.addEventListener('DOMContentLoaded', initChart);
+
+          // ✅ Рядок 40 — безпечне накопичення ініціалізаторів
+          window.chartInitializers = window.chartInitializers || [];
+          window.chartInitializers.push(initChart);
+        }
+      })();
+    </script>
   {% endif %}
 {% endmacro %}

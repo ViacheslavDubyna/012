@@ -78,7 +78,6 @@ def check_admin_rights():
         return is_admin
     except AttributeError:
         # У випадку, якщо getuid() недоступний (не Unix-подібна система без ctypes)
-        logging.warning("Не вдалося визначити права адміністратора.")
         return False
     except Exception as e:
         logging.error(f"Помилка при перевірці прав адміністратора: {e}", exc_info=True)
@@ -156,7 +155,9 @@ def main():
 
 if __name__ == "__main__":
     logging.info(f"Запуск скрипта start_system.py як головного (__name__ == '__main__')")
-    main()
+    main_success = main()
+    if not main_success:
+        sys.exit(1)
     logging.info("Скрипт start_system.py завершив свою роботу.") # Цей лог може не з'явитися, якщо сервер блокує
 
 def check_dependencies():
@@ -227,7 +228,7 @@ def check_dependencies():
                          if imp_name == import_name:
                              original_name = req_name
                              break
-                     print(f"✗ Пакет '{original_name}' (імпорт як '{import_name}') все ще не встановлено після спроби встановлення.")
+                     print(f"✗ Пакет '{original_name}' (імпорт як '{import_name}') всеще не встановлено після спроби встановлення.")
                      all_installed = False
             if not all_installed:
                   print(f"✗ Не вдалося встановити/знайти всі необхідні залежності. Перевірте файл {requirements_path} та вивід pip.")
@@ -368,4 +369,646 @@ def start_system():
     return True
 
 if __name__ == '__main__':
-    # Перевірка прав адміністратора видалена
+    logging.info(f"Запуск скрипта start_system.py як головного (__name__ == '__main__')")
+    main()
+    logging.info("Скрипт start_system.py завершив свою роботу.") # Цей лог може не з'явитися, якщо сервер блокує
+
+def check_dependencies():
+    """Перевірка наявності всіх необхідних залежностей"""
+    print_header("Перевірка наявності необхідних залежностей")
+    
+    # Визначаємо шлях до папки зі скриптом
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    requirements_path = os.path.join(script_dir, 'requirements.txt')
+
+    # Читаємо requirements.txt, щоб отримати список пакетів
+    required_packages = []
+    try:
+        with open(requirements_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    # Видаляємо специфікацію версії (==, >=, <=, > , <)
+                    package_name = line.split('==')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0]
+                    # Зіставлення імен пакетів з requirements.txt з іменами для імпорту
+                    import_name_map = {
+                        'scikit-learn': 'sklearn',
+                        'python-dateutil': 'dateutil',
+                        'psycopg2-binary': 'psycopg2',
+                        'Werkzeug': 'werkzeug', # Ім'я модуля з маленької літери
+                        'Jinja2': 'jinja2',     # Ім'я модуля з маленької літери
+                        'MarkupSafe': 'markupsafe' # Ім'я модуля з маленької літери
+                        # Пакети dash-* є частиною dash, їх не треба перевіряти окремо
+                    }
+                    # Виключаємо компоненти dash з перевірки
+                    dash_components = ['dash-core-components', 'dash-html-components', 'dash-table']
+                    if package_name not in dash_components:
+                        import_name = import_name_map.get(package_name, package_name)
+                        required_packages.append(import_name)
+    except FileNotFoundError:
+        print(f"Помилка: Файл {requirements_path} не знайдено.")
+        return False
+    
+    print(f"Перевірка пакетів: {', '.join(required_packages)}")
+    
+    missing_packages = []
+    
+    for package in required_packages:
+        try:
+            __import__(package)
+            print(f"✓ {package} встановлено")
+        except ImportError:
+            missing_packages.append(package)
+            print(f"✗ {package} не встановлено")
+    
+    if missing_packages:
+        print(f"\nВиявлено відсутні пакети. Спроба встановлення з {requirements_path}...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_path])
+            print("✓ Усі залежності успішно встановлено з requirements.txt")
+            # Повторна перевірка після встановлення
+            print("Повторна перевірка залежностей...")
+            all_installed = True
+            # Перевіряємо тільки ті пакети, які ми додали до required_packages (з правильними іменами для імпорту)
+            for import_name in required_packages:
+                 try:
+                     __import__(import_name)
+                     print(f"✓ {import_name} тепер встановлено")
+                 except ImportError:
+                     # Спробуємо знайти оригінальне ім'я пакету для повідомлення про помилку
+                     original_name = import_name # За замовчуванням
+                     for req_name, imp_name in import_name_map.items():
+                         if imp_name == import_name:
+                             original_name = req_name
+                             break
+                     print(f"✗ Пакет '{original_name}' (імпорт як '{import_name}') всеще не встановлено після спроби встановлення.")
+                     all_installed = False
+            if not all_installed:
+                  print(f"✗ Не вдалося встановити/знайти всі необхідні залежності. Перевірте файл {requirements_path} та вивід pip.")
+                  return False
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Помилка під час виконання 'pip install -r {requirements_path}': {e}")
+            print(f"  Перевірте файл {requirements_path} та наявність pip.")
+            return False
+        except Exception as e:
+            print(f"✗ Непередбачена помилка під час встановлення залежностей: {e}")
+            return False
+
+    return True
+
+def start_system():
+    """Запуск всієї системи"""
+    print_header("Запуск інформаційно-аналітичної системи Національної гвардії України")
+    
+    # Перевіряємо аргументи командного рядка
+    skip_db_setup = False
+    skip_db_init = False
+    skip_db_seed = False
+    skip_dependency_check = False
+    
+    if len(sys.argv) > 1:
+        if "--help" in sys.argv or "-h" in sys.argv:
+            print("Використання: python start_system.py [опції]")
+            print("Опції:")
+            print("  --skip-db-setup    Пропустити налаштування PostgreSQL")
+            print("  --skip-db-init     Пропустити ініціалізацію бази даних")
+            print("  --skip-db-seed     Пропустити заповнення бази даних тестовими даними")
+            print("  --skip-dependency-check  Пропустити перевірку залежностей")
+            print("  --help, -h         Показати цю довідку")
+            sys.exit(0)
+        
+        skip_db_setup = "--skip-db-setup" in sys.argv
+        skip_db_init = "--skip-db-init" in sys.argv
+        skip_db_seed = "--skip-db-seed" in sys.argv
+        skip_dependency_check = "--skip-dependency-check" in sys.argv
+    
+    # Перевірка залежностей
+    if not skip_dependency_check:
+        if not check_dependencies():
+            # Визначаємо шлях до папки зі скриптом для повідомлення про помилку
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            requirements_path = os.path.join(script_dir, 'requirements.txt')
+            print("Виявлено проблеми з залежностями. Спробуйте встановити їх вручну:")
+            # Додаємо лапки навколо шляху на випадок пробілів
+            print(f'pip install -r "{requirements_path}"')
+            print("Або запустіть систему з параметром --skip-dependency-check")
+            sys.exit(1)
+    else:
+        print("Пропускаємо перевірку залежностей...")
+    
+    # Налаштування PostgreSQL
+    if not skip_db_setup:
+        if not setup_postgres():
+            print("Помилка при налаштуванні PostgreSQL. Перевірте налаштування та спробуйте знову.")
+            print("Переконайтеся, що PostgreSQL встановлено та служба запущена.")
+            return False
+    else:
+        print("Пропускаємо налаштування PostgreSQL...")
+        # Перевіряємо, чи запущено PostgreSQL
+        if not check_postgres_running():
+            print("PostgreSQL не запущено. Спроба запуску...")
+            from setup_postgres import start_postgres
+            if not start_postgres():
+                print("Не вдалося запустити PostgreSQL. Перевірте налаштування та спробуйте знову.")
+                print("Можливо, потрібно запустити службу PostgreSQL вручну через 'services.msc'.")
+                return False
+    
+    # Ініціалізація бази даних
+    if not skip_db_init:
+        if not init_database():
+            print("Помилка при ініціалізації бази даних. Перевірте налаштування та спробуйте знову.")
+            return False
+    else:
+        print("Пропускаємо ініціалізацію бази даних...")
+    
+    # Заповнення бази даних тестовими даними
+    if not skip_db_seed:
+        if not seed_database():
+            print("Помилка при заповненні бази даних. Перевірте налаштування та спробуйте знову.")
+            return False
+    else:
+        print("Пропускаємо заповнення бази даних тестовими даними...")
+    
+    # 5. Запуск веб-інтерфейсу через run.py
+    print_header("Запуск веб-інтерфейсу системи")
+    try:
+        # Визначаємо шлях до інтерпретатора Python
+        python_executable = sys.executable
+        run_script_path = os.path.join(os.path.dirname(__file__), 'run.py')
+        
+        # Перевіряємо наявність --disable-ml аргументу
+        run_args = [python_executable, run_script_path]
+        if '--disable-ml' in sys.argv:
+            run_args.append('--disable-ml')
+            
+        print(f"Запуск команди: {' '.join(run_args)}")
+        
+        # Запускаємо run.py як окремий процес
+        # Ми не чекаємо завершення процесу, оскільки це веб-сервер
+        process = subprocess.Popen(run_args, cwd=os.path.dirname(__file__))
+        
+        # Виводимо інформацію про запуск (URL беремо з конфігурації)
+        host = SERVER_CONFIG['host']
+        port = SERVER_CONFIG['port']
+        url = f"http://{'127.0.0.1' if host == '0.0.0.0' else host}:{port}"
+        print(f"\nВеб-інтерфейс повинен бути доступний за адресою: {url}")
+        print(f"Дашборд: {url}/dashboard/improved")
+        print("Сервер запущено у фоновому режимі. Натисніть Ctrl+C для зупинки, якщо потрібно.")
+        
+        # Відкриваємо браузер
+        def open_browser_thread():
+            time.sleep(5) # Даємо більше часу на запуск сервера
+            print(f"Спроба відкрити {url} у браузері...")
+            try:
+                webbrowser.open(url)
+                print("Браузер відкрито.")
+            except Exception as browser_err:
+                print(f"Не вдалося автоматично відкрити браузер: {browser_err}")
+                print(f"Будь ласка, відкрийте {url} вручну.")
+
+        import threading
+        browser_thread = threading.Thread(target=open_browser_thread)
+        browser_thread.start()
+        
+        # Очікуємо завершення процесу сервера (необов'язково, але може бути корисним для логування)
+        # process.wait() # Розкоментуйте, якщо хочете, щоб start_system чекав завершення run.py
+
+    except Exception as e:
+        import traceback
+        print(f"\n✗ Помилка запуску run.py: {e}")
+        print(f"Трасування стеку:\n{traceback.format_exc()}")
+        sys.exit(1)
+    
+    return True
+
+if __name__ == '__main__':
+    logging.info(f"Запуск скрипта start_system.py як головного (__name__ == '__main__')")
+    main()
+    logging.info("Скрипт start_system.py завершив свою роботу.") # Цей лог може не з'явитися, якщо сервер блокує
+
+def check_dependencies():
+    """Перевірка наявності всіх необхідних залежностей"""
+    print_header("Перевірка наявності необхідних залежностей")
+    
+    # Визначаємо шлях до папки зі скриптом
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    requirements_path = os.path.join(script_dir, 'requirements.txt')
+
+    # Читаємо requirements.txt, щоб отримати список пакетів
+    required_packages = []
+    try:
+        with open(requirements_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    # Видаляємо специфікацію версії (==, >=, <=, > , <)
+                    package_name = line.split('==')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0]
+                    # Зіставлення імен пакетів з requirements.txt з іменами для імпорту
+                    import_name_map = {
+                        'scikit-learn': 'sklearn',
+                        'python-dateutil': 'dateutil',
+                        'psycopg2-binary': 'psycopg2',
+                        'Werkzeug': 'werkzeug', # Ім'я модуля з маленької літери
+                        'Jinja2': 'jinja2',     # Ім'я модуля з маленької літери
+                        'MarkupSafe': 'markupsafe' # Ім'я модуля з маленької літери
+                        # Пакети dash-* є частиною dash, їх не треба перевіряти окремо
+                    }
+                    # Виключаємо компоненти dash з перевірки
+                    dash_components = ['dash-core-components', 'dash-html-components', 'dash-table']
+                    if package_name not in dash_components:
+                        import_name = import_name_map.get(package_name, package_name)
+                        required_packages.append(import_name)
+    except FileNotFoundError:
+        print(f"Помилка: Файл {requirements_path} не знайдено.")
+        return False
+    
+    print(f"Перевірка пакетів: {', '.join(required_packages)}")
+    
+    missing_packages = []
+    
+    for package in required_packages:
+        try:
+            __import__(package)
+            print(f"✓ {package} встановлено")
+        except ImportError:
+            missing_packages.append(package)
+            print(f"✗ {package} не встановлено")
+    
+    if missing_packages:
+        print(f"\nВиявлено відсутні пакети. Спроба встановлення з {requirements_path}...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_path])
+            print("✓ Усі залежності успішно встановлено з requirements.txt")
+            # Повторна перевірка після встановлення
+            print("Повторна перевірка залежностей...")
+            all_installed = True
+            # Перевіряємо тільки ті пакети, які ми додали до required_packages (з правильними іменами для імпорту)
+            for import_name in required_packages:
+                 try:
+                     __import__(import_name)
+                     print(f"✓ {import_name} тепер встановлено")
+                 except ImportError:
+                     # Спробуємо знайти оригінальне ім'я пакету для повідомлення про помилку
+                     original_name = import_name # За замовчуванням
+                     for req_name, imp_name in import_name_map.items():
+                         if imp_name == import_name:
+                             original_name = req_name
+                             break
+                     print(f"✗ Пакет '{original_name}' (імпорт як '{import_name}') всеще не встановлено після спроби встановлення.")
+                     all_installed = False
+            if not all_installed:
+                  print(f"✗ Не вдалося встановити/знайти всі необхідні залежності. Перевірте файл {requirements_path} та вивід pip.")
+                  return False
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Помилка під час виконання 'pip install -r {requirements_path}': {e}")
+            print(f"  Перевірте файл {requirements_path} та наявність pip.")
+            return False
+        except Exception as e:
+            print(f"✗ Непередбачена помилка під час встановлення залежностей: {e}")
+            return False
+
+    return True
+
+def start_system():
+    """Запуск всієї системи"""
+    print_header("Запуск інформаційно-аналітичної системи Національної гвардії України")
+    
+    # Перевіряємо аргументи командного рядка
+    skip_db_setup = False
+    skip_db_init = False
+    skip_db_seed = False
+    skip_dependency_check = False
+    
+    if len(sys.argv) > 1:
+        if "--help" in sys.argv or "-h" in sys.argv:
+            print("Використання: python start_system.py [опції]")
+            print("Опції:")
+            print("  --skip-db-setup    Пропустити налаштування PostgreSQL")
+            print("  --skip-db-init     Пропустити ініціалізацію бази даних")
+            print("  --skip-db-seed     Пропустити заповнення бази даних тестовими даними")
+            print("  --skip-dependency-check  Пропустити перевірку залежностей")
+            print("  --help, -h         Показати цю довідку")
+            sys.exit(0)
+        
+        skip_db_setup = "--skip-db-setup" in sys.argv
+        skip_db_init = "--skip-db-init" in sys.argv
+        skip_db_seed = "--skip-db-seed" in sys.argv
+        skip_dependency_check = "--skip-dependency-check" in sys.argv
+    
+    # Перевірка залежностей
+    if not skip_dependency_check:
+        if not check_dependencies():
+            # Визначаємо шлях до папки зі скриптом для повідомлення про помилку
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            requirements_path = os.path.join(script_dir, 'requirements.txt')
+            print("Виявлено проблеми з залежностями. Спробуйте встановити їх вручну:")
+            # Додаємо лапки навколо шляху на випадок пробілів
+            print(f'pip install -r "{requirements_path}"')
+            print("Або запустіть систему з параметром --skip-dependency-check")
+            sys.exit(1)
+    else:
+        print("Пропускаємо перевірку залежностей...")
+    
+    # Налаштування PostgreSQL
+    if not skip_db_setup:
+        if not setup_postgres():
+            print("Помилка при налаштуванні PostgreSQL. Перевірте налаштування та спробуйте знову.")
+            print("Переконайтеся, що PostgreSQL встановлено та служба запущена.")
+            return False
+    else:
+        print("Пропускаємо налаштування PostgreSQL...")
+        # Перевіряємо, чи запущено PostgreSQL
+        if not check_postgres_running():
+            print("PostgreSQL не запущено. Спроба запуску...")
+            from setup_postgres import start_postgres
+            if not start_postgres():
+                print("Не вдалося запустити PostgreSQL. Перевірте налаштування та спробуйте знову.")
+                print("Можливо, потрібно запустити службу PostgreSQL вручну через 'services.msc'.")
+                return False
+    
+    # Ініціалізація бази даних
+    if not skip_db_init:
+        if not init_database():
+            print("Помилка при ініціалізації бази даних. Перевірте налаштування та спробуйте знову.")
+            return False
+    else:
+        print("Пропускаємо ініціалізацію бази даних...")
+    
+    # Заповнення бази даних тестовими даними
+    if not skip_db_seed:
+        if not seed_database():
+            print("Помилка при заповненні бази даних. Перевірте налаштування та спробуйте знову.")
+            return False
+    else:
+        print("Пропускаємо заповнення бази даних тестовими даними...")
+    
+    # 5. Запуск веб-інтерфейсу через run.py
+    print_header("Запуск веб-інтерфейсу системи")
+    try:
+        # Визначаємо шлях до інтерпретатора Python
+        python_executable = sys.executable
+        run_script_path = os.path.join(os.path.dirname(__file__), 'run.py')
+        
+        # Перевіряємо наявність --disable-ml аргументу
+        run_args = [python_executable, run_script_path]
+        if '--disable-ml' in sys.argv:
+            run_args.append('--disable-ml')
+            
+        print(f"Запуск команди: {' '.join(run_args)}")
+        
+        # Запускаємо run.py як окремий процес
+        # Ми не чекаємо завершення процесу, оскільки це веб-сервер
+        process = subprocess.Popen(run_args, cwd=os.path.dirname(__file__))
+        
+        # Виводимо інформацію про запуск (URL беремо з конфігурації)
+        host = SERVER_CONFIG['host']
+        port = SERVER_CONFIG['port']
+        url = f"http://{'127.0.0.1' if host == '0.0.0.0' else host}:{port}"
+        print(f"\nВеб-інтерфейс повинен бути доступний за адресою: {url}")
+        print(f"Дашборд: {url}/dashboard/improved")
+        print("Сервер запущено у фоновому режимі. Натисніть Ctrl+C для зупинки, якщо потрібно.")
+        
+        # Відкриваємо браузер
+        def open_browser_thread():
+            time.sleep(5) # Даємо більше часу на запуск сервера
+            print(f"Спроба відкрити {url} у браузері...")
+            try:
+                webbrowser.open(url)
+                print("Браузер відкрито.")
+            except Exception as browser_err:
+                print(f"Не вдалося автоматично відкрити браузер: {browser_err}")
+                print(f"Будь ласка, відкрийте {url} вручну.")
+
+        import threading
+        browser_thread = threading.Thread(target=open_browser_thread)
+        browser_thread.start()
+        
+        # Очікуємо завершення процесу сервера (необов'язково, але може бути корисним для логування)
+        # process.wait() # Розкоментуйте, якщо хочете, щоб start_system чекав завершення run.py
+
+    except Exception as e:
+        import traceback
+        print(f"\n✗ Помилка запуску run.py: {e}")
+        print(f"Трасування стеку:\n{traceback.format_exc()}")
+        sys.exit(1)
+    
+    return True
+
+if __name__ == '__main__':
+    main_success = main()
+    if not main_success:
+        sys.exit(1)
+    logging.info("Скрипт start_system.py завершив свою роботу.") # Цей лог може не з'явитися, якщо сервер блокує
+
+def check_dependencies():
+    """Перевірка наявності всіх необхідних залежностей"""
+    print_header("Перевірка наявності необхідних залежностей")
+    
+    # Визначаємо шлях до папки зі скриптом
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    requirements_path = os.path.join(script_dir, 'requirements.txt')
+
+    # Читаємо requirements.txt, щоб отримати список пакетів
+    required_packages = []
+    try:
+        with open(requirements_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    # Видаляємо специфікацію версії (==, >=, <=, > , <)
+                    package_name = line.split('==')[0].split('>=')[0].split('<=')[0].split('>')[0].split('<')[0]
+                    # Зіставлення імен пакетів з requirements.txt з іменами для імпорту
+                    import_name_map = {
+                        'scikit-learn': 'sklearn',
+                        'python-dateutil': 'dateutil',
+                        'psycopg2-binary': 'psycopg2',
+                        'Werkzeug': 'werkzeug', # Ім'я модуля з маленької літери
+                        'Jinja2': 'jinja2',     # Ім'я модуля з маленької літери
+                        'MarkupSafe': 'markupsafe' # Ім'я модуля з маленької літери
+                        # Пакети dash-* є частиною dash, їх не треба перевіряти окремо
+                    }
+                    # Виключаємо компоненти dash з перевірки
+                    dash_components = ['dash-core-components', 'dash-html-components', 'dash-table']
+                    if package_name not in dash_components:
+                        import_name = import_name_map.get(package_name, package_name)
+                        required_packages.append(import_name)
+    except FileNotFoundError:
+        print(f"Помилка: Файл {requirements_path} не знайдено.")
+        return False
+    
+    print(f"Перевірка пакетів: {', '.join(required_packages)}")
+    
+    missing_packages = []
+    
+    for package in required_packages:
+        try:
+            __import__(package)
+            print(f"✓ {package} встановлено")
+        except ImportError:
+            missing_packages.append(package)
+            print(f"✗ {package} не встановлено")
+    
+    if missing_packages:
+        print(f"\nВиявлено відсутні пакети. Спроба встановлення з {requirements_path}...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_path])
+            print("✓ Усі залежності успішно встановлено з requirements.txt")
+            # Повторна перевірка після встановлення
+            print("Повторна перевірка залежностей...")
+            all_installed = True
+            # Перевіряємо тільки ті пакети, які ми додали до required_packages (з правильними іменами для імпорту)
+            for import_name in required_packages:
+                 try:
+                     __import__(import_name)
+                     print(f"✓ {import_name} тепер встановлено")
+                 except ImportError:
+                     # Спробуємо знайти оригінальне ім'я пакету для повідомлення про помилку
+                     original_name = import_name # За замовчуванням
+                     for req_name, imp_name in import_name_map.items():
+                         if imp_name == import_name:
+                             original_name = req_name
+                             break
+                     print(f"✗ Пакет '{original_name}' (імпорт як '{import_name}') всеще не встановлено після спроби встановлення.")
+                     all_installed = False
+            if not all_installed:
+                  print(f"✗ Не вдалося встановити/знайти всі необхідні залежності. Перевірте файл {requirements_path} та вивід pip.")
+                  return False
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Помилка під час виконання 'pip install -r {requirements_path}': {e}")
+            print(f"  Перевірте файл {requirements_path} та наявність pip.")
+            return False
+        except Exception as e:
+            print(f"✗ Непередбачена помилка під час встановлення залежностей: {e}")
+            return False
+
+    return True
+
+def start_system():
+    """Запуск всієї системи"""
+    print_header("Запуск інформаційно-аналітичної системи Національної гвардії України")
+    
+    # Перевіряємо аргументи командного рядка
+    skip_db_setup = False
+    skip_db_init = False
+    skip_db_seed = False
+    skip_dependency_check = False
+    
+    if len(sys.argv) > 1:
+        if "--help" in sys.argv or "-h" in sys.argv:
+            print("Використання: python start_system.py [опції]")
+            print("Опції:")
+            print("  --skip-db-setup    Пропустити налаштування PostgreSQL")
+            print("  --skip-db-init     Пропустити ініціалізацію бази даних")
+            print("  --skip-db-seed     Пропустити заповнення бази даних тестовими даними")
+            print("  --skip-dependency-check  Пропустити перевірку залежностей")
+            print("  --help, -h         Показати цю довідку")
+            sys.exit(0)
+        
+        skip_db_setup = "--skip-db-setup" in sys.argv
+        skip_db_init = "--skip-db-init" in sys.argv
+        skip_db_seed = "--skip-db-seed" in sys.argv
+        skip_dependency_check = "--skip-dependency-check" in sys.argv
+    
+    # Перевірка залежностей
+    if not skip_dependency_check:
+        if not check_dependencies():
+            # Визначаємо шлях до папки зі скриптом для повідомлення про помилку
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            requirements_path = os.path.join(script_dir, 'requirements.txt')
+            print("Виявлено проблеми з залежностями. Спробуйте встановити їх вручну:")
+            # Додаємо лапки навколо шляху на випадок пробілів
+            print(f'pip install -r "{requirements_path}"')
+            print("Або запустіть систему з параметром --skip-dependency-check")
+            sys.exit(1)
+    else:
+        print("Пропускаємо перевірку залежностей...")
+    
+    # Налаштування PostgreSQL
+    if not skip_db_setup:
+        if not setup_postgres():
+            print("Помилка при налаштуванні PostgreSQL. Перевірте налаштування та спробуйте знову.")
+            print("Переконайтеся, що PostgreSQL встановлено та служба запущена.")
+            return False
+    else:
+        print("Пропускаємо налаштування PostgreSQL...")
+        # Перевіряємо, чи запущено PostgreSQL
+        if not check_postgres_running():
+            print("PostgreSQL не запущено. Спроба запуску...")
+            from setup_postgres import start_postgres
+            if not start_postgres():
+                print("Не вдалося запустити PostgreSQL. Перевірте налаштування та спробуйте знову.")
+                print("Можливо, потрібно запустити службу PostgreSQL вручну через 'services.msc'.")
+                return False
+    
+    # Ініціалізація бази даних
+    if not skip_db_init:
+        if not init_database():
+            print("Помилка при ініціалізації бази даних. Перевірте налаштування та спробуйте знову.")
+            return False
+    else:
+        print("Пропускаємо ініціалізацію бази даних...")
+    
+    # Заповнення бази даних тестовими даними
+    if not skip_db_seed:
+        if not seed_database():
+            print("Помилка при заповненні бази даних. Перевірте налаштування та спробуйте знову.")
+            return False
+    else:
+        print("Пропускаємо заповнення бази даних тестовими даними...")
+    
+    # 5. Запуск веб-інтерфейсу через run.py
+    print_header("Запуск веб-інтерфейсу системи")
+    try:
+        # Визначаємо шлях до інтерпретатора Python
+        python_executable = sys.executable
+        run_script_path = os.path.join(os.path.dirname(__file__), 'run.py')
+        
+        # Перевіряємо наявність --disable-ml аргументу
+        run_args = [python_executable, run_script_path]
+        if '--disable-ml' in sys.argv:
+            run_args.append('--disable-ml')
+            
+        print(f"Запуск команди: {' '.join(run_args)}")
+        
+        # Запускаємо run.py як окремий процес
+        # Ми не чекаємо завершення процесу, оскільки це веб-сервер
+        process = subprocess.Popen(run_args, cwd=os.path.dirname(__file__))
+        
+        # Виводимо інформацію про запуск (URL беремо з конфігурації)
+        host = SERVER_CONFIG['host']
+        port = SERVER_CONFIG['port']
+        url = f"http://{'127.0.0.1' if host == '0.0.0.0' else host}:{port}"
+        print(f"\nВеб-інтерфейс повинен бути доступний за адресою: {url}")
+        print(f"Дашборд: {url}/dashboard/improved")
+        print("Сервер запущено у фоновому режимі. Натисніть Ctrl+C для зупинки, якщо потрібно.")
+        
+        # Відкриваємо браузер
+        def open_browser_thread():
+            time.sleep(5) # Даємо більше часу на запуск сервера
+            print(f"Спроба відкрити {url} у браузері...")
+            try:
+                webbrowser.open(url)
+                print("Браузер відкрито.")
+            except Exception as browser_err:
+                print(f"Не вдалося автоматично відкрити браузер: {browser_err}")
+                print(f"Будь ласка, відкрийте {url} вручну.")
+
+        import threading
+        browser_thread = threading.Thread(target=open_browser_thread)
+        browser_thread.start()
+        
+        # Очікуємо завершення процесу сервера (необов'язково, але може бути корисним для логування)
+        # process.wait() # Розкоментуйте, якщо хочете, щоб start_system чекав завершення run.py
+
+    except Exception as e:
+        import traceback
+        print(f"\n✗ Помилка запуску run.py: {e}")
+        print(f"Трасування стеку:\n{traceback.format_exc()}")
+        sys.exit(1)
+    
+    return True
+
+if __name__ == '__main__':
+    logging.info(f"Запуск скрипта start_system.py як головного (__name__ == '__main__')")
+    main()
+    logging.info("Скрипт start_system.py завершив свою роботу.") # Цей лог може не з'явитися, якщо сервер блокує

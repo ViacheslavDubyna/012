@@ -77,9 +77,7 @@ def register_dashapp(flask_app):
     """Інтеграція Dash-додатку з Flask через DispatcherMiddleware"""
     from werkzeug.middleware.dispatcher import DispatcherMiddleware
     from dashboard.improved_dashboard_integration import app as dash_app
-    dispatcher = DispatcherMiddleware(flask_app, {
-        '/dashboard/improved': dash_app.server
-    })
+    dispatcher = DispatcherMiddleware(flask_app, { '/dashboard/improved': dash_app.server })
     logging.info("Dash app зареєстровано через DispatcherMiddleware.") # Додано логування
     return dispatcher
 
