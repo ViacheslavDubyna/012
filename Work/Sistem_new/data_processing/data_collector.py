@@ -34,7 +34,7 @@ DB_PARAMS = {
     'password': 'postgres',
     'host': 'localhost',
     'port': '5432',
-    'client_encoding': 'utf8'
+    'client_encoding': 'UTF8'
 }
 
 # Клас для збору даних

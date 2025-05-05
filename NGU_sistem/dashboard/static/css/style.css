@@ -2,7 +2,7 @@
  * Основні стилі для інформаційно-аналітичної системи НГУ
  */
 
-:root {
+ :root {
     --ngu-primary: #1b3a1b;    /* Темно-зелений - основний колір НГУ */
     --ngu-secondary: #2c5e2c;  /* Середньо-зелений */
     --ngu-accent: #FFD700;     /* Золотий - акцентний колір */
@@ -21,7 +21,7 @@ body {
 
 /* Навігаційна панель */
 .navbar {
-    background-color: var(--ngu-primary);
+    background-color: var(--ngu-primary) !important;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-bottom: 2px solid var(--ngu-accent);
 }
@@ -31,6 +31,7 @@ body {
     color: var(--ngu-accent) !important;
     text-transform: uppercase;
     letter-spacing: 1px;
+    background-color: transparent !important;
 }
 
 .nav-link {
@@ -40,6 +41,20 @@ body {
     padding: 0.5rem 1rem;
     margin: 0 0.2rem;
     border-radius: 4px;
+    background-color: transparent !important;
+}
+
+/* Додатковий захист від перекриття стилями Bootstrap */
+.navbar.bg-light, .navbar.navbar-light {
+    background-color: var(--ngu-light) !important;
+}
+.navbar.bg-light .navbar-brand, .navbar.navbar-light .navbar-brand {
+    color: var(--ngu-primary) !important;
+    background-color: transparent !important;
+}
+.navbar.bg-light .nav-link, .navbar.navbar-light .nav-link {
+    color: var(--ngu-dark) !important;
+    background-color: transparent !important;
 }
 
 .nav-link:hover {
@@ -54,13 +69,13 @@ body {
 
 /* Емблема НГУ */
 .ngu-emblem.svg {
-    width: 7px;
-    height: 7px;
+    width: 50px;
+    height: 50px;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     transition: transform 0.3s ease;
 }
 
-.nngu-emblem.svg {
+.ngu-emblem.svg {
     transform: scale(0.14);
 }
 
@@ -98,12 +113,12 @@ body {
 }
 
 .custom-marker.high-priority {
-    background-color: #dc3545;
+    background-color: var(--ngu-accent);
     border-color: var(--ngu-accent);
 }
 
 .custom-marker.medium-priority {
-    background-color: #fd7e14;
+    background-color: var(--ngu-secondary);
     border-color: var(--ngu-accent);
 }
 
@@ -355,11 +370,11 @@ body {
 
 /* Футер */
 footer {
-    background-color: green !important; /* або #008000 для темно-зеленого */
+    background-color: green !important;
     color: black !important;
     font-size: 0.9rem;
     padding: 1.5rem 0;
-    border-top: 3px solid #ccc; /* можна змінити за потреби */
+    border-top: 3px solid #df0909;
     margin-top: 3rem;
 }
 
@@ -375,68 +390,67 @@ footer a:hover {
 }
 
 /* Адаптивність */
-@media (max-width: 768px) {
-    .ngu-emblem-small {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .display-5 {
-        font-size: 1.8rem;
-    }
-    
-    .lead {
-        font-size: 1rem;
-    }
-    
-    .stats-panel h2 {
-        font-size: 1.5rem;
-    }
-    
-    #map-container, #prediction-map-container, #incidents-map-container {
-        height: 300px;
-    }
-    
-    .card {
-        margin-bottom: 1rem;
-    }
-    
-    .navbar-brand {
-        font-size: 1.2rem;
-    }
-    
-    .btn {
-        padding: 0.4rem 1rem;
-        font-size: 0.9rem;
-    }
+.ngu-emblem-small {
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+}
+
+.display-5 {
+    font-size: 1.8rem;
+}
+
+.lead {
+    font-size: 1rem;
+}
+
+.stats-panel h2 {
+    font-size: 1.5rem;
+}
+
+#map-container, #prediction-map-container, #incidents-map-container {
+    height: 300px;
+}
+
+.card {
+    margin-bottom: 1rem;
+}
+
+.navbar-brand {
+    font-size: 1.2rem;
+}
+
+.btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
 }
 
 @media (max-width: 576px) {
     .ngu-emblem-small {
-        width: 50px;
-        height: 50px;
+        width: 24px;
+        height: 24px;
     }
-    
+
     .display-5 {
         font-size: 1.5rem;
     }
-    
+
     .lead {
         font-size: 0.9rem;
     }
-    
+
     .card-title {
         font-size: 1.2rem;
     }
-    
+
     .stats-panel h3 {
         font-size: 1.3rem;
     }
-    
+
     .stats-panel h2 {
         font-size: 1.3rem;
     }
-    
+
     #map-container, #prediction-map-container, #incidents-map-container {
         height: 250px;
     }

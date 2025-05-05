@@ -34,7 +34,8 @@ DB_PARAMS = {
     'user': 'postgres',
     'password': 'postgres',
     'host': 'localhost',
-    'port': '5432'
+    'port': '5432',
+    'client_encoding': 'UTF8'
 }
 
 # Клас для аналізу даних

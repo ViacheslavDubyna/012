@@ -64,13 +64,13 @@ class IncidentPredictor:
         }
 
 
-class BorderCrossingPredictor:
-    """Клас для прогнозування кількості """
+class NGUIncidentPredictor:
+    """Клас для прогнозування кількості інцидентів громадського порядку"""
     
     def __init__(self):
-        """Ініціалізація предиктора перетинів кордону"""
-        self.model = load_model('border_crossing_predictor')
-        self.scaler = load_model('border_crossing_scaler')
+        """Ініціалізація предиктора інцидентів НГУ"""
+        self.model = load_model('ngu_incident_predictor')
+        self.scaler = load_model('ngu_incident_scaler')
         
         # Якщо модель не знайдена, створюємо нову
         if self.model is None:
@@ -87,13 +87,13 @@ class BorderCrossingPredictor:
         self.model.fit(X_scaled, y)
         
         # Зберігаємо навчену модель
-        save_model(self.model, 'border_crossing_predictor')
-        save_model(self.scaler, 'border_crossing_scaler')
+        save_model(self.model, 'ngu_incident_predictor')
+        save_model(self.scaler, 'ngu_incident_scaler')
         
         return self
     
     def predict(self, features):
-        """Прогнозування кількості перетинів кордону"""
+        """Прогнозування кількості інцидентів громадського порядку"""
         if self.model is None:
             return "Модель не навчена"
         
@@ -167,7 +167,7 @@ def generate_forecast(days=7):
         forecast.append({
             'date': date.strftime('%Y-%m-%d'),
             'incident_risk': np.random.choice(['низький', 'середній', 'високий'], p=[0.7, 0.2, 0.1]),
-            'border_crossings': int(np.random.normal(1000, 200)),
+            'ngu_incidents': int(np.random.normal(100, 30)),
             'required_personnel': int(np.random.normal(50, 10))
         })
     

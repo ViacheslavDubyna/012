@@ -13,10 +13,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, mean_absolute_error, classification_report
 
-from .predictors import IncidentPredictor, BorderCrossingPredictor, ResourcePredictor
+from .predictors import IncidentPredictor, NGUIncidentPredictor, ResourcePredictor
 from database.generate_test_data import (
     generate_training_data_for_incident_predictor,
-    generate_training_data_for_border_crossing_predictor,
+    generate_training_data_for_ngu_incident_predictor,
     generate_training_data_for_resource_predictor
 )
 
@@ -65,39 +65,27 @@ def train_incident_predictor(test_size=0.2, random_state=42):
     }
 
 
-def train_border_crossing_predictor(test_size=0.2, random_state=42):
+def train_ngu_incident_predictor(test_size=0.2, random_state=42):
     """
-    Навчання моделі прогнозування кількості інцидентів
-    
+    Навчання моделі прогнозування кількості інцидентів громадського порядку
     :param test_size: частка тестової вибірки
     :param random_state: початкове значення для генератора випадкових чисел
     :return: навчена модель та метрики якості
     """
-    print("\nНавчання моделі прогнозування інцидентів...")
-    
+    print("\nНавчання моделі прогнозування інцидентів громадського порядку...")
     # Генерація тренувальних даних
-    X, y = generate_training_data_for_border_crossing_predictor(count=1000)
-    
+    X, y = generate_training_data_for_ngu_incident_predictor(count=1000)
     # Розділення на тренувальну та тестову вибірки
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
-    
     # Ініціалізація та навчання моделі
-    predictor = BorderCrossingPredictor()
+    predictor = NGUIncidentPredictor()
     predictor.train(X_train, y_train)
-    
     # Оцінка якості моделі
     features_scaled = predictor.scaler.transform(X_test)
     y_pred = predictor.model.predict(features_scaled)
-    
     mae = mean_absolute_error(y_test, y_pred)
-    mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100
-    
-    print(f"Середня абсолютна помилка (MAE): {mae:.2f} перетинів")
-    print(f"Середня абсолютна відсоткова помилка (MAPE): {mape:.2f}%")
-    
     return predictor, {
-        'mae': mae,
-        'mape': mape
+        'mae': mae
     }
 
 
@@ -153,10 +141,10 @@ def train_all_models():
     }
     
     # Навчання моделі прогнозування перетинів кордону
-    border_crossing_predictor, border_crossing_metrics = train_border_crossing_predictor()
-    results['border_crossing_predictor'] = {
-        'model': border_crossing_predictor,
-        'metrics': border_crossing_metrics
+    ngu_incident_predictor, ngu_incident_metrics = train_ngu_incident_predictor()
+    results['ngu_incident_predictor'] = {
+        'model': ngu_incident_predictor,
+        'metrics': ngu_incident_metrics
     }
     
     # Навчання моделі прогнозування необхідних ресурсів
